@@ -48,29 +48,29 @@ let deletePost = (id) => {
 let findPostsByTerm = (keyword) => {
     return new Promise((resolve, reject) => {
         let query =
-            {
-                "query": {
-                    "multi_match": {
-                        "query": `${keyword}`,
-                        "type": "most_fields",
-                        "fields": [ "title", "content" ]
-                    }
-                },
-                "highlight": {
-                    "pre_tags": [ "<strong>" ],
-                    "post_tags": [ "</strong>" ],
-                    "fields": {
-                        "title": {
-                            "fragment_size": 200,
-                            "number_of_fragments": 1
-                        },
-                        "content": {
-                            "fragment_size": 200,
-                            "number_of_fragments": 1
-                        }
+        {
+            "query": {
+                "multi_match": {
+                    "query": `${keyword}`,
+                    "type": "most_fields",
+                    "fields": ["title", "content"]
+                }
+            },
+            "highlight": {
+                "pre_tags": ["<strong>"],
+                "post_tags": ["</strong>"],
+                "fields": {
+                    "title": {
+                        "fragment_size": 200,
+                        "number_of_fragments": 1
+                    },
+                    "content": {
+                        "fragment_size": 200,
+                        "number_of_fragments": 1
                     }
                 }
-            };
+            }
+        };
 
         request.get({
             url: `${process.env.ELASTIC_HOST}/doctorcare_haryphamdev/posts/_search`,
