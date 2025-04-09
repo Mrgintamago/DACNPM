@@ -39,7 +39,7 @@ let getPosts = (LIMIT_POST) => {
     return new Promise(async (resolve, reject) => {
         try {
             //chỉ get bài đăng y khoa
-            let posts = await db.Post.findAll({
+            let posts = await db.Handbook.findAll({
                 // where:{
                 //     forDoctorId: -1,
                 //     forSpecializationId: -1,

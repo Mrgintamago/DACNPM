@@ -254,7 +254,52 @@ INSERT INTO `posts` (`id`, `title`, `contentMarkdown`, `contentHTML`, `forDoctor
 
 -- --------------------------------------------------------
 
---
+-- Table handbook
+CREATE TABLE `handbooks` (
+  `id` int(11) NOT NULL,
+  `title` varchar(255) DEFAULT NULL,
+  `contentMarkdown` text DEFAULT NULL,
+  `contentHTML` text DEFAULT NULL,
+  `forDoctorId` int(11) DEFAULT NULL,
+  `forSpecializationId` int(11) DEFAULT NULL,
+  `forClinicId` int(11) DEFAULT NULL,
+  `writerId` int(11) NOT NULL,
+  `confirmByDoctor` tinyint(1) DEFAULT NULL,
+  `image` varchar(255) DEFAULT NULL,
+  `createdAt` datetime NOT NULL,
+  `updatedAt` datetime DEFAULT NULL,
+  `deletedAt` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+INSERT INTO `handbooks` 
+(`id`, `title`, `contentMarkdown`, `contentHTML`, `forDoctorId`, `forSpecializationId`, `forClinicId`, `writerId`, `confirmByDoctor`, `image`, `createdAt`, `updatedAt`, `deletedAt`) 
+VALUES
+(1, 'Lời khuyên', '### Lời khuyên y tế\n\n**Cho mình một ngày trong tuần để thư giãn** Đây là một quy tắc đơn giản...', 
+'<h3>Lời khuyên y tế</h3><p><strong>Cho mình một ngày trong tuần để thư giãn</strong> Đây là một quy tắc đơn giản...</p>', -1, 1, -1, 1, NULL, NULL, '2020-11-13 20:29:11', '2020-11-13 20:35:21', NULL),
+
+(2, 'Cách dùng thuốc', '### Cách dùng thuốc hợp lý\n\n- **Không tự ý dùng thuốc kháng sinh** Kháng sinh là vũ khí mạnh nhưng cần đúng chỉ định...', 
+'<h3>Cách dùng thuốc hợp lý</h3><ul><li><strong>Không tự ý dùng thuốc kháng sinh</strong> Kháng sinh là vũ khí mạnh...</li>...</ul>', -1, 2, -1, 2, NULL, NULL, '2020-11-14 10:12:34', '2020-11-14 10:45:21', NULL),
+
+(3, 'Phòng bệnh mùa lạnh', '### Cách phòng bệnh mùa lạnh hiệu quả\n\n- **Giữ ấm cơ thể** Đặc biệt là vùng cổ, ngực, tay chân và đầu...', 
+'<h3>Cách phòng bệnh mùa lạnh hiệu quả</h3><ul><li><strong>Giữ ấm cơ thể</strong> Đặc biệt là vùng cổ, ngực, tay chân...</li>...</ul>', -1, 3, -1, 3, NULL, NULL, '2020-11-15 08:22:10', '2020-11-15 08:45:55', NULL),
+
+(4, 'Dinh dưỡng cho bé', '### Những lưu ý dinh dưỡng cho trẻ nhỏ\n\n- **Cho bé ăn đa dạng thực phẩm** Bao gồm cả rau xanh, thịt cá, trứng, sữa...', 
+'<h3>Những lưu ý dinh dưỡng cho trẻ nhỏ</h3><ul><li><strong>Cho bé ăn đa dạng thực phẩm</strong> Bao gồm cả rau xanh...</li>...</ul>', -1, 4, -1, 4, NULL, NULL, '2020-11-16 13:40:00', '2020-11-16 13:55:21', NULL),
+
+(5, 'Phục hồi sau phẫu thuật', '### Hướng dẫn phục hồi sau phẫu thuật\n\n- **Tuân thủ đúng chỉ định của bác sĩ** Về chế độ ăn, nghỉ ngơi, vận động...', 
+'<h3>Hướng dẫn phục hồi sau phẫu thuật</h3><ul><li><strong>Tuân thủ đúng chỉ định của bác sĩ</strong> Về chế độ ăn...</li>...</ul>', -1, 5, -1, 5, NULL, NULL, '2020-11-17 15:25:30', '2020-11-17 15:40:11', NULL),
+
+(6, 'Ngủ đủ giấc', '### Vì sao phải ngủ đủ giấc?\n\n- **Cải thiện trí nhớ và khả năng học tập** Giấc ngủ giúp não bộ xử lý và lưu giữ thông tin...', 
+'<h3>Vì sao phải ngủ đủ giấc?</h3><ul><li><strong>Cải thiện trí nhớ và khả năng học tập</strong> Giấc ngủ giúp não bộ xử lý...</li>...</ul>', -1, 6, -1, 6, NULL, NULL, '2020-11-18 09:10:45', '2020-11-18 09:32:00', NULL),
+
+(7, 'Tập thể dục đúng cách', '### Nguyên tắc tập luyện hiệu quả\n\n- **Khởi động kỹ trước khi tập** Tránh chấn thương và giúp cơ thể thích nghi...', 
+'<h3>Nguyên tắc tập luyện hiệu quả</h3><ul><li><strong>Khởi động kỹ trước khi tập</strong> Tránh chấn thương...</li>...</ul>', -1, 7, -1, 7, NULL, NULL, '2020-11-19 14:00:00', '2020-11-19 14:20:05', NULL),
+
+(8, 'Khám sức khỏe định kỳ', '### Tại sao nên khám sức khỏe định kỳ?\n\n- **Phát hiện bệnh sớm** Đặc biệt là các bệnh mạn tính hoặc ung thư...', 
+'<h3>Tại sao nên khám sức khỏe định kỳ?</h3><ul><li><strong>Phát hiện bệnh sớm</strong> Đặc biệt là các bệnh mạn tính...</li>...</ul>', -1, 8, -1, 8, NULL, NULL, '2020-11-20 11:35:10', '2020-11-20 11:55:00', NULL);
+
+
+-- -----------------------------------------------------------
 -- Table structure for table `roles`
 --
 
