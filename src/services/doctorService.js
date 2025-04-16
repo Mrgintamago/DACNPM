@@ -16,6 +16,7 @@ const statusFailedId = 2;
 const statusSuccessId = 1;
 const statusNewId = 4;
 const statusDone = 5;
+const MAX_SCHEDULE_NUMBER = 10; // Số lượng đặt khám tối đa mỗi khung giờ
 
 let getDoctorWithSchedule = (id, currentDate) => {
     return new Promise((async (resolve, reject) => {
@@ -344,14 +345,23 @@ let getPatientsBookAppointment = (data) => {
 let getDoctorSchedules = (data) => {
     return new Promise(async (resolve, reject) => {
         try {
+            console.log("Getting schedules for doctor ID:", data.doctorId);
+            console.log("Date range:", data.threeDaySchedules);
+            
             let schedules = await db.Schedule.findAll({
                 where: {
                     doctorId: data.doctorId,
                     date: { [Op.in]: data.threeDaySchedules },
                 },
+                raw: true // Thêm để log dữ liệu thuần
             });
-            resolve(schedules)
+            
+            console.log("Found schedules:", schedules.length);
+            console.log("Schedule samples:", schedules.slice(0, 2));
+            
+            resolve(schedules);
         } catch (e) {
+            console.error("Error in getDoctorSchedules:", e);
             reject(e);
         }
     });
@@ -480,6 +490,133 @@ let createFeedback = (data) => {
     });
 };
 
+let bulkCreateSchedule = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            console.log("Received data:", data);
+            
+            // Từ chối mọi yêu cầu tạo lịch cho admin (ID=1)
+            if (data.doctorId == 1) {
+                console.log("Rejecting schedule creation for admin (ID 1)");
+                resolve({
+                    errCode: 5,
+                    errMessage: 'Không thể tạo lịch cho tài khoản admin'
+                });
+                return;
+            }
+            
+            // Kiểm tra nếu đây là ID của bác sĩ thực sự
+            const doctor = await db.User.findOne({
+                where: {
+                    id: data.doctorId,
+                    roleId: 2 // Chỉ cho phép bác sĩ
+                }
+            });
+            
+            if (!doctor) {
+                console.log("Doctor not found or not a doctor. ID:", data.doctorId);
+                resolve({
+                    errCode: 6,
+                    errMessage: 'Không tìm thấy bác sĩ hoặc ID không phải là bác sĩ'
+                });
+                return;
+            }
+            
+            // Xóa đoạn code trùng lặp ở đây
+            
+            if (!data.doctorId || !data.date || !data.timeArr || !Array.isArray(data.timeArr) || data.timeArr.length === 0) {
+                resolve({
+                    errCode: 1,
+                    errMessage: 'Thiếu thông tin cần thiết'
+                });
+                return; // Thêm return để tránh thực thi code phía dưới
+            }
+            
+            // Tiếp tục code hiện tại...
+
+            // Chuẩn hóa định dạng ngày
+            let formattedDate = data.date;
+            
+            // Nếu format là YYYY-MM-DD, chuyển sang DD/MM/YYYY cho database
+            if (data.date.includes('-')) {
+                const parts = data.date.split('-');
+                if (parts.length === 3) {
+                    formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+                    console.log("Converted to DD/MM/YYYY format:", formattedDate);
+                }
+            }
+            
+            // Xử lý mảng thời gian và tạo các bản ghi
+            let schedule = data.timeArr.map(item => {
+                return {
+                    doctorId: data.doctorId,
+                    date: formattedDate, // Sử dụng định dạng đã chuẩn hóa
+                    time: item,
+                    maxBooking: MAX_SCHEDULE_NUMBER,
+                    sumBooking: 0,
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                };
+            });
+            
+            // Kiểm tra lịch đã tồn tại
+            let existing = await db.Schedule.findAll({
+                where: {
+                    doctorId: data.doctorId,
+                    date: formattedDate, // Sử dụng định dạng đã chuẩn hóa
+                    time: { [Op.in]: data.timeArr }
+                }
+            });
+            
+            // Phần code còn lại...
+
+            if (existing && existing.length > 0) {
+                // Lọc ra những khung giờ chưa có trong database
+                let existingTimes = existing.map(item => item.time);
+                schedule = schedule.filter(item => !existingTimes.includes(item.time));
+            }
+            
+            console.log("Schedule objects to be created:", schedule);
+            
+            // Nếu có lịch mới cần thêm
+            if (schedule && schedule.length > 0) {
+                let result = await db.Schedule.bulkCreate(schedule);
+                console.log("Created schedules:", result);
+                resolve({
+                    errCode: 0,
+                    errMessage: 'Tạo lịch khám thành công'
+                });
+            } else {
+                resolve({
+                    errCode: 3,
+                    errMessage: 'Các khung giờ đã tồn tại trong lịch'
+                });
+            }
+        } catch (e) {
+            console.error("Error in bulkCreateSchedule:", e);
+            reject(e);
+        }
+    });
+};
+
+let getDoctorsForSchedule = () => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            // Chỉ lấy người dùng có roleId là 2 (bác sĩ)
+            let doctors = await db.User.findAll({
+                where: { roleId: 2 }, // Bắt buộc phải là bác sĩ
+                attributes: ['id', 'name', 'email', 'address'],
+                order: [['name', 'ASC']],
+                raw: true
+            });
+            
+            resolve(doctors);
+        } catch (e) {
+            reject(e);
+        }
+    });
+};
+
 module.exports = {
     getDoctorForFeedbackPage: getDoctorForFeedbackPage,
     getDoctorWithSchedule: getDoctorWithSchedule,
@@ -497,4 +634,6 @@ module.exports = {
     getPlacesForDoctor: getPlacesForDoctor,
     sendFormsForPatient: sendFormsForPatient,
     createFeedback: createFeedback,
+    bulkCreateSchedule: bulkCreateSchedule,
+    getDoctorsForSchedule: getDoctorsForSchedule,
 };

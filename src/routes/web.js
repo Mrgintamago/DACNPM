@@ -12,6 +12,7 @@ import userService from "./../services/userService";
 const packageController = require('../controllers/packageController');
 import userController from '../controllers/userController';
 import authController from "../controllers/authController";
+import doctorController from "../controllers/doctorController";
 // Hoặc sử dụng
 // const authController = require('../controllers/authController');
 
@@ -152,6 +153,15 @@ let initRoutes = (app) => {
     router.post('/doctor/send-forms-to-patient', auth.checkLoggedIn, doctor.postSendFormsToPatient);
     router.post('/doctor/auto-create-all-doctors-schedule', auth.checkLoggedIn, doctor.postAutoCreateAllDoctorsSchedule)
 
+    // Ví dụ về route tạo lịch tự động cho tất cả bác sĩ
+    router.post('/doctor/auto-create-all-doctors-schedule', (req, res, next) => {
+        // Middleware kiểm tra trước khi xử lý
+        if (req.user && req.user.roleId !== 1) {
+            return res.status(403).send('Chỉ admin mới có thể thực hiện chức năng này');
+        }
+        next();
+    }, doctorController.autoCreateAllDoctorsSchedule);
+
     router.get('/supporter/manage/customers', auth.checkLoggedIn, supporter.getManageCustomersPage);
     router.get('/supporter/get-new-patients', auth.checkLoggedIn, supporter.getNewPatients);
     router.get('/supporter/manage/posts', auth.checkLoggedIn, supporter.getManagePosts);
@@ -219,6 +229,14 @@ let initRoutes = (app) => {
 
     router.get('/reset-password/:token', authController.getResetPasswordPage);
     router.post('/reset-password/:token', authController.handleResetPassword);
+
+    router.get('/api/get-doctors', doctorController.getDoctorsForSchedule);
+    // Tìm dòng này
+    router.post('/doctor/create-schedule', doctorController.createSchedule);
+
+    // Nếu có bất kỳ middleware nào đang được áp dụng, hãy kiểm tra chúng
+    // Ví dụ:
+    // router.post('/doctor/create-schedule', someMiddleware, doctorController.createSchedule);
 
     return app.use("/", router);
 };

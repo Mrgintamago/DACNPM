@@ -1,8 +1,12 @@
-import doctorService from "./../services/doctorService";
-import userService from "./../services/userService";
+import doctorService from "../services/doctorService";
+import userService from "../services/userService";
 import _ from "lodash";
 import moment from "moment";
 import multer from "multer";
+
+// Chỉ dùng một cách import nhất quán
+// Chọn cách dùng ES6 import vì bạn đang dùng syntax này trong file
+import db from "../models";
 
 const MAX_BOOKING = 2;
 
@@ -199,6 +203,114 @@ let postAutoCreateAllDoctorsSchedule = async (req, res) => {
     }
 }
 
+let getDoctorsForSchedule = async (req, res) => {
+    try {
+        // Lấy danh sách bác sĩ từ database (roleId = 2 là bác sĩ)
+        let doctors = await db.User.findAll({
+            where: { roleId: 2 },
+            attributes: ['id', 'name', 'email', 'address'],
+            order: [['name', 'ASC']],
+            raw: true
+        });
+        
+        return res.status(200).json({
+            errCode: 0,
+            data: doctors,
+            errMessage: 'Success'
+        });
+    } catch (e) {
+        console.error('Error getting doctors:', e);
+        return res.status(200).json({
+            errCode: -1,
+            errMessage: 'Error from the server: ' + e.message
+        });
+    }
+};
+
+let createSchedule = async (req, res) => {
+    try {
+        console.log("Request body received:", req.body);
+        
+        // Lấy thông tin từ request
+        let doctorId = req.body.doctorId;
+        let date = req.body.date;
+        let timeArr = req.body.schedules || req.body.timeArr;
+        
+        // QUAN TRỌNG: Kiểm tra nếu doctorId trùng với admin ID, không thực hiện
+        if (doctorId == 1) {
+            return res.status(200).json({
+                errCode: 5,
+                errMessage: 'Không thể tạo lịch cho tài khoản admin'
+            });
+        }
+        
+        // Xử lý tiếp theo...
+        let response = await doctorService.bulkCreateSchedule({
+            doctorId: doctorId,
+            date: date,
+            timeArr: timeArr
+        });
+        
+        return res.status(200).json(response);
+    } catch (e) {
+        console.error('Error creating schedule:', e);
+        return res.status(200).json({
+            errCode: -1,
+            errMessage: 'Error from the server: ' + e.message
+        });
+    }
+};
+
+let autoCreateAllDoctorsSchedule = async (req, res) => {
+    try {
+        // Lấy danh sách chỉ các bác sĩ thực sự (không phải admin)
+        let doctors = await db.User.findAll({
+            where: {
+                roleId: 2,  // Chỉ lấy bác sĩ
+                id: { [db.Sequelize.Op.ne]: 1 }  // Loại trừ admin ID=1
+            },
+            attributes: ['id', 'name'],
+            raw: true
+        });
+        
+        console.log("Creating schedules for doctors:", doctors.map(d => d.id));
+        
+        // Tạo 3 ngày lịch
+        let threeDaySchedules = [];
+        for (let i = 0; i < 3; i++) {
+            let date = moment().add(i, 'days').format('DD/MM/YYYY');
+            threeDaySchedules.push(date);
+        }
+        
+        // Các khung giờ mặc định
+        let timeSlots = [
+            '08:00 - 09:00',
+            '09:00 - 10:00',
+            '10:00 - 11:00',
+            '11:00 - 12:00',
+            '13:00 - 14:00',
+            '14:00 - 15:00',
+            '15:00 - 16:00',
+            '16:00 - 17:00'
+        ];
+        
+        // Tạo lịch cho từng bác sĩ
+        for (let doctor of doctors) {
+            for (let date of threeDaySchedules) {
+                await doctorService.bulkCreateSchedule({
+                    doctorId: doctor.id,
+                    date: date,
+                    timeArr: timeSlots
+                });
+            }
+        }
+        
+        return res.status(200).send('Đã tạo lịch thành công cho tất cả bác sĩ');
+    } catch (e) {
+        console.error('Error creating schedules for all doctors:', e);
+        return res.status(500).send('Lỗi khi tạo lịch cho bác sĩ');
+    }
+};
 
 module.exports = {
     getSchedule: getSchedule,
@@ -210,5 +322,8 @@ module.exports = {
     getManageChart: getManageChart,
     postSendFormsToPatient: postSendFormsToPatient,
     postCreateChart: postCreateChart,
-    postAutoCreateAllDoctorsSchedule: postAutoCreateAllDoctorsSchedule
+    postAutoCreateAllDoctorsSchedule: postAutoCreateAllDoctorsSchedule,
+    getDoctorsForSchedule: getDoctorsForSchedule,
+    createSchedule: createSchedule,
+    autoCreateAllDoctorsSchedule: autoCreateAllDoctorsSchedule
 };
