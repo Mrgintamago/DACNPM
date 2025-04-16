@@ -72,6 +72,20 @@ const isAuthenticated = (req, res, next) => {
     res.status(401).json({ message: 'Vui lòng đăng nhập để thực hiện chức năng này' });
 };
 
+// Thêm middleware multer để xử lý form multipart/form-data
+let storageSpecialization = multer.diskStorage({
+    destination: (req, file, callback) => {
+        callback(null, "src/public/images/specializations");
+    },
+    filename: (req, file, callback) => {
+        let imageName = `${Date.now()}-${file.originalname}`;
+        callback(null, imageName);
+    }
+});
+
+let uploadSpecializationImage = multer({
+    storage: storageSpecialization
+}).single("image");
 
 let initRoutes = (app) => {
     router.get("/all-clinics", home.getPageAllClinics);
@@ -141,9 +155,6 @@ let initRoutes = (app) => {
     router.get('/doctor/manage/chart', auth.checkLoggedIn, doctor.getManageChart);
     router.post('/doctor/manage/create-chart', auth.checkLoggedIn, doctor.postCreateChart);
     router.post('/doctor/send-forms-to-patient', auth.checkLoggedIn, doctor.postSendFormsToPatient);
-    router.post('/doctor/auto-create-all-doctors-schedule', auth.checkLoggedIn, doctor.postAutoCreateAllDoctorsSchedule)
-
-    // Ví dụ về route tạo lịch tự động cho tất cả bác sĩ
     router.post('/doctor/auto-create-all-doctors-schedule', (req, res, next) => {
         // Middleware kiểm tra trước khi xử lý
         if (req.user && req.user.roleId !== 1) {
@@ -227,6 +238,43 @@ let initRoutes = (app) => {
     // Nếu có bất kỳ middleware nào đang được áp dụng, hãy kiểm tra chúng
     // Ví dụ:
     // router.post('/doctor/create-schedule', someMiddleware, doctorController.createSchedule);
+
+    // Thêm các route này vào file web.js
+
+    // Route để lấy thông tin chuyên khoa theo ID
+    router.post('/admin/get-specialization-by-id', auth.checkLoggedIn, admin.getSpecializationById);
+
+    // Route để hiển thị trang chỉnh sửa chuyên khoa
+    router.get('/admin/edit-specialization/:id', auth.checkLoggedIn, admin.getEditSpecializationPage);
+
+    // Thay đổi route để xử lý file upload
+    router.put('/admin/update-specialization', auth.checkLoggedIn, (req, res, next) => {
+        uploadSpecializationImage(req, res, (err) => {
+            if (err) {
+                return res.status(500).json({
+                    errCode: 3,
+                    errMessage: `Lỗi upload file: ${err.message}`
+                });
+            }
+            
+            // Thêm đường dẫn file vào req.body nếu có file upload
+            if (req.file) {
+                req.body.image = req.file.filename;
+            }
+            
+            // Log dữ liệu sau khi xử lý file
+            console.log("Request body after upload:", req.body);
+            
+            next();
+        });
+    }, admin.putUpdateSpecialization);
+
+    // Thêm route cho trang quản lý chuyên khoa
+    router.get('/admin/manage-specialization', auth.checkLoggedIn, admin.getSpecializationPage);
+
+    // Thêm routes cho xem chi tiết và xóa chuyên khoa
+    router.post('/admin/get-specialization-by-id', auth.checkLoggedIn, admin.getSpecializationById);
+    router.delete('/admin/delete-specialization', auth.checkLoggedIn, admin.deleteSpecialization);
 
     return app.use("/", router);
 };

@@ -1274,5 +1274,140 @@ $(document).ready(function(e) {
     let month = new Date().getMonth();
     statisticalAdmin(month+1);
     handleFindStatisticalAdmin();
+    
+    // Xử lý nút xem thông tin chuyên khoa
+    $('.view-specialization-info').on('click', function(e) {
+        e.preventDefault();
+        const id = $(this).data('id');
+        
+        $.ajax({
+            url: `${window.location.origin}/admin/get-specialization-by-id`,
+            method: "POST",
+            data: { id: id },
+            success: function(response) {
+                if (response.errCode === 0) {
+                    $('#specialization-info-modal .modal-title').text('Thông tin chuyên khoa');
+                    $('#specialization-info-modal .specialization-name').text(response.data.name);
+                    $('#specialization-info-modal .specialization-description').html(response.data.description);
+                    if (response.data.image) {
+                        $('#specialization-info-modal .specialization-image').attr('src', `/images/specializations/${response.data.image}`);
+                    }
+                    $('#specialization-info-modal').modal('show');
+                } else {
+                    alertify.error(response.errMessage || 'Không thể lấy thông tin chuyên khoa');
+                }
+            },
+            error: function(error) {
+                console.error(error);
+                alertify.error('Đã xảy ra lỗi khi tải thông tin chuyên khoa');
+            }
+        });
+    });
+
+    // Sửa việc chuyển hướng đến trang edit từ nút chỉnh sửa
+    $('.edit-specialization').on('click', function(e) {
+        e.preventDefault();
+        const id = $(this).data('id');
+        
+        // Kiểm tra ID
+        if (!id || isNaN(parseInt(id))) {
+            alert('Lỗi: ID chuyên khoa không hợp lệ');
+            return;
+        }
+        
+        console.log("Redirecting to edit page with ID:", id);
+        window.location.href = `/admin/edit-specialization/${id}`;
+    });
+
+    // Đã có xử lý xóa chuyên khoa nên không cần thêm
+});
+
+// Thêm event handler cho nút xem chi tiết chuyên khoa
+$(document).ready(function() {
+    $('.view-specialization-info').on('click', function(e) {
+        e.preventDefault();
+        const id = $(this).data('id');
+        
+        if (!id) {
+            alertify.error('Không tìm thấy ID chuyên khoa');
+            return;
+        }
+        
+        console.log("Viewing specialization with ID:", id);
+        
+        $.ajax({
+            url: `${window.location.origin}/admin/get-specialization-by-id`,
+            method: "POST",
+            data: { id: id },
+            success: function(response) {
+                if (response.errCode === 0) {
+                    // Hiển thị thông tin trong modal
+                    $('#modal-specialization-name').text(response.data.name);
+                    $('#modal-specialization-description').html(response.data.description || 'Không có mô tả');
+                    
+                    if (response.data.image) {
+                        $('#modal-specialization-image')
+                            .attr('src', `/images/specializations/${response.data.image}`)
+                            .show();
+                    } else {
+                        $('#modal-specialization-image').hide();
+                    }
+                    
+                    $('#viewSpecializationModal').modal('show');
+                } else {
+                    alertify.error(response.errMessage || 'Không thể lấy thông tin chuyên khoa');
+                }
+            },
+            error: function(error) {
+                console.error('Error fetching specialization:', error);
+                alertify.error('Đã xảy ra lỗi khi tải thông tin chuyên khoa');
+            }
+        });
+    });
+
+    // Xử lý nút xóa chuyên khoa
+    $('.delete-specific-specialization').on('click', function(e) {
+        e.preventDefault();
+        const id = $(this).data('id');
+        const name = $(this).data('name');
+        
+        if (!id) {
+            alertify.error('Không tìm thấy ID chuyên khoa');
+            return;
+        }
+        
+        // Hiển thị xác nhận trước khi xóa
+        alertify.confirm(
+            'Xác nhận xóa',
+            `Bạn có chắc muốn xóa chuyên khoa "${name || 'này'}"?`,
+            function() {
+                // Nếu người dùng xác nhận xóa
+                $.ajax({
+                    url: `${window.location.origin}/admin/delete-specialization`,
+                    method: "DELETE",
+                    data: { id: id },
+                    success: function(response) {
+                        if (response.errCode === 0) {
+                            alertify.success('Xóa chuyên khoa thành công');
+                            // Reload trang sau khi xóa thành công
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1500);
+                        } else {
+                            alertify.error(response.errMessage || 'Không thể xóa chuyên khoa');
+                        }
+                    },
+                    error: function(error) {
+                        console.error('Error deleting specialization:', error);
+                        alertify.error('Đã xảy ra lỗi khi xóa chuyên khoa');
+                    }
+                });
+            },
+            function() {
+                // Nếu người dùng hủy xóa
+                alertify.message('Đã hủy thao tác xóa');
+            }
+        );
+    });
 });
 
