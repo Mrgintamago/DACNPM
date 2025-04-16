@@ -276,6 +276,12 @@ let initRoutes = (app) => {
     router.post('/admin/get-specialization-by-id', auth.checkLoggedIn, admin.getSpecializationById);
     router.delete('/admin/delete-specialization', auth.checkLoggedIn, admin.deleteSpecialization);
 
+    // Thêm các route cho tư vấn viên
+    router.get('/users/supporter/edit/:id', auth.checkLoggedIn, admin.getEditSupporterPage);
+    router.put('/admin/supporter/update', auth.checkLoggedIn, admin.putUpdateSupporter);
+    router.post('/admin/get-supporter-by-id', auth.checkLoggedIn, admin.getSupporterById);
+    router.delete('/admin/delete-supporter', auth.checkLoggedIn, admin.deleteSupporter);
+
     return app.use("/", router);
 };
 module.exports = initRoutes;
