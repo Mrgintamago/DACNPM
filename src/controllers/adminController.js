@@ -552,6 +552,171 @@ let deleteSpecialization = async (req, res) => {
     }
 };
 
+// Lấy thông tin chi tiết tư vấn viên
+let getSupporterById = async (req, res) => {
+    try {
+        if (!req.body.id) {
+            return res.status(200).json({
+                errCode: 1,
+                errMessage: 'Thiếu thông tin ID tư vấn viên'
+            });
+        }
+        
+        const id = parseInt(req.body.id);
+        let supporter = await db.User.findOne({
+            where: { 
+                id: id,
+                roleId: 3 // Đảm bảo đây là tư vấn viên
+            },
+            attributes: {
+                exclude: ['password']
+            },
+            raw: true
+        });
+        
+        if (!supporter) {
+            return res.status(200).json({
+                errCode: 2,
+                errMessage: 'Không tìm thấy tư vấn viên'
+            });
+        }
+        
+        return res.status(200).json({
+            errCode: 0,
+            data: supporter
+        });
+    } catch (e) {
+        console.log("Error in getSupporterById:", e);
+        return res.status(200).json({
+            errCode: -1,
+            errMessage: 'Lỗi từ server'
+        });
+    }
+};
+
+// Hiển thị trang chỉnh sửa tư vấn viên
+let getEditSupporterPage = async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        if (isNaN(id) || id <= 0) {
+            return res.status(400).send('ID không hợp lệ');
+        }
+        
+        let supporter = await db.User.findOne({
+            where: { 
+                id: id,
+                roleId: 3 // Đảm bảo đây là tư vấn viên
+            },
+            attributes: {
+                exclude: ['password']
+            },
+            raw: true
+        });
+        
+        if (!supporter) {
+            return res.status(404).send("Không tìm thấy tư vấn viên");
+        }
+        
+        return res.render("main/users/admins/editSupporter.ejs", {
+            user: req.user,
+            supporter: supporter
+        });
+    } catch (e) {
+        console.log("Error in getEditSupporterPage:", e);
+        return res.status(500).json({ error: e.message });
+    }
+};
+
+// Cập nhật thông tin tư vấn viên
+let putUpdateSupporter = async (req, res) => {
+    try {
+        const supporterId = parseInt(req.body.id);
+        if (isNaN(supporterId) || supporterId <= 0) {
+            return res.status(400).json({
+                errCode: 3,
+                errMessage: 'ID tư vấn viên không hợp lệ'
+            });
+        }
+        
+        let supporter = await db.User.findOne({
+            where: { 
+                id: supporterId,
+                roleId: 3
+            }
+        });
+        
+        if (!supporter) {
+            return res.status(404).json({
+                errCode: 2,
+                errMessage: 'Không tìm thấy tư vấn viên'
+            });
+        }
+        
+        // Cập nhật thông tin
+        await supporter.update({
+            name: req.body.name || supporter.name,
+            email: req.body.email || supporter.email,
+            phone: req.body.phone || supporter.phone,
+            address: req.body.address || supporter.address,
+            description: req.body.description || supporter.description,
+            isActive: req.body.isActive !== undefined ? req.body.isActive : supporter.isActive
+        });
+        
+        return res.status(200).json({
+            errCode: 0,
+            message: 'Cập nhật tư vấn viên thành công'
+        });
+    } catch (e) {
+        console.log("Error in putUpdateSupporter:", e);
+        return res.status(500).json({
+            errCode: 1,
+            errMessage: 'Lỗi server: ' + e.message
+        });
+    }
+};
+
+// Xóa tư vấn viên
+let deleteSupporter = async (req, res) => {
+    try {
+        if (!req.body.id) {
+            return res.status(200).json({
+                errCode: 1,
+                errMessage: 'Thiếu thông tin ID tư vấn viên'
+            });
+        }
+        
+        const id = parseInt(req.body.id);
+        let supporter = await db.User.findOne({
+            where: { 
+                id: id,
+                roleId: 3
+            }
+        });
+        
+        if (!supporter) {
+            return res.status(200).json({
+                errCode: 2,
+                errMessage: 'Không tìm thấy tư vấn viên'
+            });
+        }
+        
+        // Xóa tư vấn viên (hoặc đánh dấu xóa)
+        // Tùy vào thiết kế hệ thống, có thể xóa hoàn toàn hoặc đánh dấu là đã xóa
+        await supporter.destroy(); // Nếu hệ thống có paranoid, sẽ chỉ cập nhật deletedAt
+        
+        return res.status(200).json({
+            errCode: 0,
+            message: 'Xóa tư vấn viên thành công'
+        });
+    } catch (e) {
+        console.log("Error in deleteSupporter:", e);
+        return res.status(200).json({
+            errCode: -1,
+            errMessage: 'Lỗi từ server'
+        });
+    }
+};
+
 module.exports = {
     getManageDoctor: getManageDoctor,
     getCreateDoctor: getCreateDoctor,
@@ -583,5 +748,10 @@ module.exports = {
     getSpecializationById: getSpecializationById,
     getEditSpecializationPage: getEditSpecializationPage,
     putUpdateSpecialization: putUpdateSpecialization,
-    deleteSpecialization: deleteSpecialization
+    deleteSpecialization: deleteSpecialization,
+
+    getSupporterById: getSupporterById,
+    getEditSupporterPage: getEditSupporterPage,
+    putUpdateSupporter: putUpdateSupporter,
+    deleteSupporter: deleteSupporter
 };
