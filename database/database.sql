@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 15, 2025 at 11:13 AM
+-- Generation Time: Apr 16, 2025 at 09:17 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -21,10 +21,9 @@ SET time_zone = "+00:00";
 -- Database: `doctorcare`
 --
 
+-- --------------------------------------------------------
 CREATE DATABASE IF NOT EXISTS `doctorcare` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 USE `doctorcare`;
--- --------------------------------------------------------
-
 --
 -- Table structure for table `clinics`
 --
@@ -103,7 +102,7 @@ CREATE TABLE `doctor_users` (
 --
 
 INSERT INTO `doctor_users` (`id`, `doctorId`, `clinicId`, `specializationId`, `createdAt`, `updatedAt`, `deletedAt`) VALUES
-(1, 2, 1, 1, '2020-11-13 19:46:18', '2020-11-13 19:46:18', NULL),
+(1, 2, 1, 1, '2020-11-13 19:46:18', '2025-04-17 01:37:03', NULL),
 (2, 3, 3, 3, '2020-11-13 20:19:56', '2020-11-13 20:19:56', NULL),
 (3, 4, 2, 7, '2020-11-13 20:20:15', '2020-11-13 20:20:15', NULL),
 (4, 5, 5, 4, '2020-11-13 20:20:26', '2020-11-13 20:20:26', NULL),
@@ -344,6 +343,14 @@ CREATE TABLE `schedules` (
   `deletedAt` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `schedules`
+--
+
+INSERT INTO `schedules` (`id`, `doctorId`, `date`, `time`, `maxBooking`, `sumBooking`, `createdAt`, `updatedAt`, `deletedAt`) VALUES
+(342, 2, '17/04/2025', '09:00 - 10:00', '10', '0', '2025-04-17 01:32:24', '2025-04-17 01:32:24', NULL),
+(343, 2, '17/04/2025', '10:00 - 11:00', '10', '0', '2025-04-17 01:32:24', '2025-04-17 01:32:24', NULL);
+
 -- --------------------------------------------------------
 
 --
@@ -392,8 +399,7 @@ CREATE TABLE `session` (
 --
 
 INSERT INTO `session` (`sid`, `expires`, `data`, `createdAt`, `updatedAt`) VALUES
-('naR9qwlbXkuOpEgtZqARNIcYgOlQ8BXh', '2025-04-09 01:36:45', '{\"cookie\":{\"originalMaxAge\":86400000,\"expires\":\"2025-04-08T18:36:45.806Z\",\"secure\":false,\"httpOnly\":false,\"path\":\"/\"},\"flash\":{}}', '2025-04-08 01:36:43', '2025-04-08 01:36:45'),
-('x8ZN9dlfc-a_bXrzn8mDUMWMpvS26sMM', '2025-04-16 16:13:29', '{\"cookie\":{\"originalMaxAge\":86400000,\"expires\":\"2025-04-16T09:13:29.088Z\",\"secure\":false,\"httpOnly\":false,\"path\":\"/\"},\"flash\":{}}', '2025-04-15 16:13:28', '2025-04-15 16:13:29');
+('Nb5UNj7nX_3t3JplllHG248g25q7ifu3', '2025-04-18 02:16:25', '{\"cookie\":{\"originalMaxAge\":86399998,\"expires\":\"2025-04-17T19:16:25.163Z\",\"secure\":false,\"httpOnly\":false,\"path\":\"/\"},\"passport\":{\"user\":1}}', '2025-04-17 01:27:14', '2025-04-17 02:16:25');
 
 -- --------------------------------------------------------
 
@@ -416,13 +422,13 @@ CREATE TABLE `specializations` (
 --
 
 INSERT INTO `specializations` (`id`, `name`, `description`, `image`, `createdAt`, `updatedAt`, `deletedAt`) VALUES
-(1, 'Tai Mũi Họng', NULL, 'TaiMuiHong.jpg', '2020-11-13 19:44:36', '2020-11-13 19:44:36', NULL),
-(2, 'Phẫu Thuật Thần Kinh', NULL, 'ThanKinh.jpg', '2020-11-13 19:44:36', '2020-11-13 19:44:36', NULL),
-(3, 'Phẫu Thuật', NULL, 'PhauThuat.jpg', '2020-11-13 19:44:36', '2020-11-13 19:44:36', NULL),
-(4, 'Tim Mạch (Tim)', NULL, 'TimMach.jpg', '2020-11-13 19:44:36', '2020-11-13 19:44:36', NULL),
-(5, 'Y Khoa', NULL, 'YKhoa.jpg', '2020-11-13 19:44:36', '2020-11-13 19:44:36', NULL),
-(6, 'Gan Ghép Tạng', NULL, 'Gan.jpg', '2020-11-13 19:44:36', '2020-11-13 19:44:36', NULL),
-(7, 'Phẫu Thuật Thẩm Mỹ', NULL, 'PhauThuatThamMy.jpg', '2020-11-13 19:44:36', '2020-11-13 19:44:36', NULL);
+(1, 'Tai Mũi Họng', 'Chuyên ngành y học điều trị các bệnh lý liên quan đến tai, mũi và họng, bao gồm cả phẫu thuật và điều trị nội khoa. Các bệnh thường gặp như viêm tai giữa, viêm xoang, polyp mũi, và các vấn đề về giọng nói hoặc thính lực.', 'TaiMuiHong.jpg', '2020-11-13 19:44:36', '2025-04-17 02:10:22', NULL),
+(2, 'Phẫu Thuật Thần Kinh', 'Lĩnh vực chuyên sâu về phẫu thuật các bệnh lý liên quan đến hệ thần kinh trung ương và ngoại vi, bao gồm não, tủy sống và các dây thần kinh. Các ca phẫu thuật thần kinh thường phức tạp, đòi hỏi kỹ thuật cao để bảo vệ chức năng thần kinh và giảm thiểu biến chứng.', 'ThanKinh.jpg', '2020-11-13 19:44:36', '2025-04-17 02:10:16', NULL),
+(3, 'Phẫu Thuật', 'Là chuyên ngành y học tập trung vào việc thực hiện các thủ thuật can thiệp bằng dao kéo hoặc các dụng cụ y tế để điều trị bệnh lý, chấn thương hoặc các tình trạng cấp cứu. Phẫu thuật bao gồm nhiều lĩnh vực nhỏ khác nhau, đòi hỏi kỹ năng cao và kiến thức chuyên sâu về giải phẫu, gây mê, hồi sức.', 'PhauThuat.jpg', '2020-11-13 19:44:36', '2025-04-17 02:09:59', NULL),
+(4, 'Tim Mạch (Tim)', 'Chuyên ngành tập trung vào chẩn đoán, điều trị và phòng ngừa các bệnh lý về tim và mạch máu. Bao gồm các phương pháp nội khoa, can thiệp tim mạch và phẫu thuật tim để xử lý các bệnh như suy tim, nhồi máu cơ tim, hẹp van tim, và rối loạn nhịp tim.', 'TimMach.jpg', '2020-11-13 19:44:36', '2025-04-17 02:10:32', NULL),
+(5, 'Y Khoa', 'Là ngành tổng quát trong y học, nghiên cứu, chẩn đoán và điều trị các bệnh lý đa dạng của con người bằng phương pháp nội khoa, không can thiệp phẫu thuật. Y khoa bao gồm nhiều chuyên ngành nhỏ như nội tiết, hô hấp, tiêu hóa, nhi khoa, và nhiều lĩnh vực khác nhằm bảo vệ và nâng cao sức khỏe cộng đồng.', 'YKhoa.jpg', '2020-11-13 19:44:36', '2025-04-17 02:10:38', NULL),
+(6, 'Gan Ghép Tạng', 'Chuyên ngành Gan Ghép Tạng là lĩnh vực y học chuyên sâu về chẩn đoán, điều trị và phẫu thuật thay thế gan bệnh lý bằng gan khỏe mạnh lấy từ người cho sống hoặc người hiến đã chết não. Đây là phương pháp điều trị hiệu quả nhất, thậm chí là duy nhất, giúp cứu sống và kéo dài tuổi thọ cho bệnh nhân mắc các bệnh gan nặng như xơ gan, ung thư gan, suy gan cấp, khi các phương pháp điều trị khác không còn hiệu quả.\r\n\r\nChuyên ngành này yêu cầu sự phối hợp đa chuyên khoa (ngoại khoa, nội khoa, gây mê hồi sức, chẩn đoán hình ảnh, miễn dịch...) và đội ngũ được đào tạo chuyên sâu về kỹ thuật ghép tạng, đánh giá, tuyển chọn người hiến – người nhận, thực hiện phẫu thuật và chăm sóc sau ghép để phát hiện, xử lý biến chứng, đảm bảo thành công lâu dài cho người bệnh.', 'Gan.jpg', '2020-11-13 19:44:36', '2025-04-17 02:04:00', NULL),
+(7, 'Phẫu Thuật Thẩm Mỹ', 'Chuyên ngành phẫu thuật nhằm cải thiện hoặc tái tạo các đặc điểm ngoại hình của cơ thể, giúp nâng cao thẩm mỹ và tự tin cho người bệnh. Bao gồm các kỹ thuật như nâng ngực, tạo hình mũi, hút mỡ, trẻ hóa da, và sửa chữa các dị tật bẩm sinh hoặc hậu chấn thương.', 'PhauThuatThamMy.jpg', '2020-11-13 19:44:36', '2025-04-17 02:10:08', NULL);
 
 -- --------------------------------------------------------
 
@@ -505,8 +511,8 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `name`, `email`, `password`, `address`, `phone`, `avatar`, `gender`, `description`, `roleId`, `isActive`, `createdAt`, `updatedAt`, `deletedAt`) VALUES
-(1, 'admin - Simplo', 'admin@gmail.com', '$2a$10$9GJawP5LYHEIM5LCj4PStOZ4Sc/U5KSt1dXUhhGJJybj41RazLZi6', 'Vĩnh Long', '088456732', 'admin.jpg', 'male', NULL, 1, 1, '2020-11-13 19:44:36', '2025-04-15 16:11:51', NULL),
-(2, 'Doctor - Trịnh Trần Phương Hướng', 'doctor@gmail.com', '$2a$07$Bq0hCq3kVrvKUHfMT0NJROmQkx09aEQkGlwBGEdw799YJvWqH1kuy', 'An Giang', '088456735', 'doctor3.png', 'male', '   ', 2, 1, '2020-11-13 19:44:36', '2020-11-13 19:46:18', NULL),
+(1, 'admin - Simplo', 'admin@gmail.com', '$2a$10$9GJawP5LYHEIM5LCj4PStOZ4Sc/U5KSt1dXUhhGJJybj41RazLZi6', 'Vĩnh Long', '088456732', 'uwahh.jpg', 'male', NULL, 1, 1, '2020-11-13 19:44:36', '2025-04-17 01:28:44', NULL),
+(2, 'Doctor - Trịnh Trần Phương Hướng', 'doctor@gmail.com', '$2a$07$Bq0hCq3kVrvKUHfMT0NJROmQkx09aEQkGlwBGEdw799YJvWqH1kuy', 'Bến Tre', '088456735', 'doctor3.png', 'male', '     ', 2, 1, '2020-11-13 19:44:36', '2025-04-17 01:37:03', NULL),
 (3, 'Doctor - Trần Bác Ái', 'doctor5@gmail.com', '$2a$07$Bq0hCq3kVrvKUHfMT0NJROmQkx09aEQkGlwBGEdw799YJvWqH1kuy', 'Long An', '088456735', 'doctor4.jpg', 'male', '   ', 2, 1, '2020-11-13 19:44:36', '2020-11-13 20:19:55', NULL),
 (4, 'Doctor - Thắn Đường', 'doctor10@gmail.com', '$2a$07$Bq0hCq3kVrvKUHfMT0NJROmQkx09aEQkGlwBGEdw799YJvWqH1kuy', 'Tiền Giang', '088456735', 'doctor1.png', 'male', '   ', 2, 1, '2020-11-13 19:44:36', '2020-11-13 20:20:15', NULL),
 (5, 'Doctor - Phạm Trần Trung Trực', 'doctor1@gmail.com', '$2a$07$Bq0hCq3kVrvKUHfMT0NJROmQkx09aEQkGlwBGEdw799YJvWqH1kuy', 'Hậu Giang', '088456735', 'doctor2.jpg', 'unknown', '   ', 2, 1, '2020-11-13 19:44:36', '2020-11-13 20:20:26', NULL),
@@ -515,7 +521,8 @@ INSERT INTO `users` (`id`, `name`, `email`, `password`, `address`, `phone`, `ava
 (8, 'Supporter - Phan Huỳnh Thu', 'supporter@gmail.com', '$2a$10$/IGn24RC.VUtQHaIt1tN6el5O0GeKUGwOvOojtKIe/R7aYJNIPmL6', 'Đồng Tháp', '088456736', 'supporter.png', 'female', NULL, 3, 1, '2020-11-13 19:44:36', '2025-04-08 01:35:49', NULL),
 (9, 'Supporter - Tú Châu', 'supporter1@gmail.com', '$2a$07$Bq0hCq3kVrvKUHfMT0NJROmQkx09aEQkGlwBGEdw799YJvWqH1kuy', 'Trà Vinh', '088456736', 'supporter.png', 'female', NULL, 3, 0, '2020-11-13 19:44:36', '2020-11-13 19:44:36', NULL),
 (10, 'Supporter - Tú Châu', 'supporter2@gmail.com', '$2a$07$Bq0hCq3kVrvKUHfMT0NJROmQkx09aEQkGlwBGEdw799YJvWqH1kuy', 'Trà Vinh', '088456736', 'supporter.png', 'female', NULL, 3, 1, '2020-11-13 19:44:36', '2020-11-13 19:44:36', NULL),
-(11, 'Supporter - Hà Hữu Hoài', 'supporter3@gmail.com', '$2a$07$Bq0hCq3kVrvKUHfMT0NJROmQkx09aEQkGlwBGEdw799YJvWqH1kuy', 'Châu Đốc', '088456736', 'supporter.png', 'male', NULL, 3, 1, '2020-11-13 19:44:36', '2020-11-13 19:44:36', NULL);
+(11, 'Supporter - Hà Hữu Hoài', 'supporter3@gmail.com', '$2a$07$Bq0hCq3kVrvKUHfMT0NJROmQkx09aEQkGlwBGEdw799YJvWqH1kuy', 'Châu Đốc', '088456736', 'supporter.png', 'male', NULL, 3, 1, '2020-11-13 19:44:36', '2020-11-13 19:44:36', NULL),
+(12, 'Supporter - Tàu Hũ Ki', 'supporter3@gmail.com', '$2a$07$Bq0hCq3kVrvKUHfMT0NJROmQkx09aEQkGlwBGEdw799YJvWqH1kuy', 'Châu Đốc', '088456736', 'supporter.png', 'male', NULL, 3, 1, '2020-11-13 19:44:36', '2020-11-13 19:44:36', NULL);
 
 --
 -- Indexes for dumped tables
@@ -700,13 +707,13 @@ ALTER TABLE `roles`
 -- AUTO_INCREMENT for table `schedules`
 --
 ALTER TABLE `schedules`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=297;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=344;
 
 --
 -- AUTO_INCREMENT for table `specializations`
 --
 ALTER TABLE `specializations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `statuses`
@@ -724,7 +731,7 @@ ALTER TABLE `supporterlogs`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
