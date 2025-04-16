@@ -5,29 +5,22 @@ let getSpecializationById = (id) => {
         try {
             let specialization = await db.Specialization.findOne({
                 where: { id: id },
-                attributes: [ 'id', 'name', 'image', 'description' ],
+                raw: true // Lấy dữ liệu dạng plain object
             });
-            if(!specialization) {
-                reject("Can't get specialization-id: "+id);
+            
+            if (!specialization) {
+                reject(`Không tìm thấy chuyên khoa với id = ${id}`);
+                return;
             }
-            let post = await db.Post.findOne({
-                where: { forSpecializationId: id },
-                attributes: [ 'id', 'title', 'contentHTML' ]
-            });
-
-            let places = await db.Place.findAll({
-                attributes: ['id', 'name']
-            });
-
-            resolve({
-                specialization: specialization,
-                post: post,
-                places: places
-            });
-        } catch (err) {
-            reject(err);
+            
+            // Bỏ đoạn code liên quan đến Places
+            // KHÔNG gọi Places.findAll() ở đây nữa
+            
+            resolve(specialization);
+        } catch (e) {
+            reject(e);
         }
-    })
+    });
 };
 
 let getAllSpecializations = () => {
@@ -70,8 +63,46 @@ let deleteSpecializationById = (id) => {
     });
 };
 
+let updateSpecialization = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            // Thêm validation cho ID
+            if (!data.id) {
+                reject(new Error('ID chuyên khoa không được để trống'));
+                return;
+            }
+            
+            console.log("Finding specialization with ID:", data.id);
+            
+            let specialization = await db.Specialization.findOne({
+                where: { id: data.id }
+            });
+            
+            if (!specialization) {
+                reject(new Error(`Không tìm thấy chuyên khoa với id = ${data.id}`));
+                return;
+            }
+            
+            // Cập nhật thông tin
+            await specialization.update({
+                name: data.name || specialization.name,
+                description: data.description || specialization.description,
+                ...(data.image && { image: data.image }),
+                updatedAt: new Date()
+            });
+            
+            // Quan trọng: Nhớ resolve kết quả
+            resolve(specialization);
+        } catch (e) {
+            console.error("Error in updateSpecialization:", e);
+            reject(e);
+        }
+    });
+};
+
 module.exports = {
     getSpecializationById: getSpecializationById,
     getAllSpecializations: getAllSpecializations,
-    deleteSpecializationById: deleteSpecializationById
+    deleteSpecializationById: deleteSpecializationById,
+    updateSpecialization: updateSpecialization
 };

@@ -4,8 +4,8 @@ import clinicService from "./../services/clinicService";
 import specializationService from "./../services/specializationService";
 import supporterService from "./../services/supporterService";
 import doctorService from "./../services/doctorService";
-import chatFBServie from "./../services/chatFBService";
 import multer from "multer";
+const db = require('../models');
 
 
 let getManageDoctor = async (req, res) => {
@@ -184,11 +184,16 @@ let putUpdateClinic = (req, res) => {
 };
 
 let getSpecializationPage = async (req, res) => {
-    let specializations = await specializationService.getAllSpecializations();
-    return res.render("main/users/admins/manageSpecialization.ejs", {
-        user: req.user,
-        specializations: specializations
-    });
+    try {
+        let specializations = await specializationService.getAllSpecializations();
+        return res.render("main/users/admins/manageSpecialization.ejs", {
+            user: req.user,
+            specializations: specializations
+        });
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json(e);
+    }
 };
 
 let deleteDoctorById = async (req, res) => {
@@ -321,22 +326,6 @@ let deleteSpecializationById = async (req, res) => {
 
 };
 
-let getManageBotPage = async (req, res) => {
-    try {
-        return res.send("Hello word. You'll need a witAI account")
-        let entities = await chatFBServie.getWitEntitiesWithExpression();
-        let entityName = await chatFBServie.getWitEntities();
-        return res.render('main/users/admins/manageBot.ejs', {
-            user: req.user,
-            entities: entities,
-            entityName: entityName
-        });
-    } catch (e) {
-        console.log(e);
-    }
-
-};
-
 let deletePostById = async (req, res) => {
     try {
         await supporterService.deletePostById(req.body.id);
@@ -414,6 +403,155 @@ let getInfoStatistical = async (req, res) => {
     }
 };
 
+// Thêm các phương thức này vào adminController.js
+
+// Sửa lại hàm getSpecializationById
+let getSpecializationById = async (req, res) => {
+    try {
+        if (!req.body.id) {
+            return res.status(200).json({
+                errCode: 1,
+                errMessage: 'Thiếu thông tin ID chuyên khoa'
+            });
+        }
+        
+        const id = parseInt(req.body.id);
+        let specialization = await db.Specialization.findOne({
+            where: { id: id },
+            raw: true
+        });
+        
+        if (!specialization) {
+            return res.status(200).json({
+                errCode: 2,
+                errMessage: 'Không tìm thấy chuyên khoa'
+            });
+        }
+        
+        return res.status(200).json({
+            errCode: 0,
+            data: specialization
+        });
+    } catch (e) {
+        console.log("Error in getSpecializationById:", e);
+        return res.status(200).json({
+            errCode: -1,
+            errMessage: 'Lỗi từ server'
+        });
+    }
+};
+
+// Hiển thị trang chỉnh sửa chuyên khoa
+let getEditSpecializationPage = async (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        if (isNaN(id) || id <= 0) {
+            return res.status(400).send('ID không hợp lệ');
+        }
+        
+        console.log("Fetching specialization with ID:", id);
+        
+        let specialization = await specializationService.getSpecializationById(id);
+        console.log("Found specialization:", specialization);
+        
+        if (!specialization) {
+            return res.status(404).send("Không tìm thấy chuyên khoa");
+        }
+        
+        return res.render("main/users/admins/editSpecialization.ejs", {
+            user: req.user,
+            specialization: specialization
+            // Không cần truyền places nữa vì không lấy dữ liệu places
+        });
+    } catch (e) {
+        console.log("Error in getEditSpecializationPage:", e);
+        return res.status(500).json({ error: e.message });
+    }
+};
+
+// Cập nhật thông tin chuyên khoa
+let putUpdateSpecialization = async (req, res) => {
+    try {
+        console.log("Raw request body:", req.body);
+        
+        // Chuyển đổi ID từ chuỗi sang số
+        let specializationId = req.body.id;
+        
+        // ID là chuỗi rỗng hoặc không tồn tại
+        if (!specializationId || specializationId === '') {
+            console.log("ID is missing or empty in request body:", req.body);
+            return res.status(400).json({
+                errCode: 2,
+                errMessage: 'Thiếu thông tin ID chuyên khoa'
+            });
+        }
+        
+        // Parse ID thành số
+        specializationId = parseInt(specializationId);
+        if (isNaN(specializationId) || specializationId <= 0) {
+            return res.status(400).json({
+                errCode: 3,
+                errMessage: 'ID chuyên khoa không hợp lệ'
+            });
+        }
+        
+        // Cập nhật lại ID trong req.body
+        req.body.id = specializationId;
+        
+        console.log("Updating specialization with ID:", specializationId);
+        
+        let result = await specializationService.updateSpecialization(req.body);
+        return res.status(200).json({
+            errCode: 0,
+            message: 'Cập nhật chuyên khoa thành công'
+        });
+    } catch (e) {
+        console.log("Error in putUpdateSpecialization:", e);
+        return res.status(500).json({
+            errCode: 1,
+            errMessage: 'Lỗi server: ' + e.message
+        });
+    }
+};
+
+// Xóa chuyên khoa theo ID
+let deleteSpecialization = async (req, res) => {
+    try {
+        if (!req.body.id) {
+            return res.status(200).json({
+                errCode: 1,
+                errMessage: 'Thiếu thông tin ID chuyên khoa'
+            });
+        }
+        
+        const id = parseInt(req.body.id);
+        let specialization = await db.Specialization.findOne({
+            where: { id: id }
+        });
+        
+        if (!specialization) {
+            return res.status(200).json({
+                errCode: 2,
+                errMessage: 'Không tìm thấy chuyên khoa'
+            });
+        }
+        
+        // Xóa chuyên khoa
+        await specialization.destroy();
+        
+        return res.status(200).json({
+            errCode: 0,
+            message: 'Xóa chuyên khoa thành công'
+        });
+    } catch (e) {
+        console.log("Error in deleteSpecialization:", e);
+        return res.status(200).json({
+            errCode: -1,
+            errMessage: 'Lỗi từ server'
+        });
+    }
+};
+
 module.exports = {
     getManageDoctor: getManageDoctor,
     getCreateDoctor: getCreateDoctor,
@@ -423,7 +561,6 @@ module.exports = {
     getSpecializationPage: getSpecializationPage,
     getEditDoctor: getEditDoctor,
     getSupporterPage: getSupporterPage,
-    getManageBotPage: getManageBotPage,
     getEditPost: getEditPost,
     getManageCreateScheduleForDoctorsPage: getManageCreateScheduleForDoctorsPage,
     getInfoStatistical: getInfoStatistical,
@@ -441,5 +578,10 @@ module.exports = {
     deleteClinicById: deleteClinicById,
     deleteDoctorById: deleteDoctorById,
     deleteSpecializationById: deleteSpecializationById,
-    deletePostById: deletePostById
+    deletePostById: deletePostById,
+
+    getSpecializationById: getSpecializationById,
+    getEditSpecializationPage: getEditSpecializationPage,
+    putUpdateSpecialization: putUpdateSpecialization,
+    deleteSpecialization: deleteSpecialization
 };
