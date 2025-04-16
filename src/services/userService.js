@@ -294,6 +294,30 @@ let getAllDoctorsSchedule = () => {
         }
     })
 }
+
+let getAllDoctors = () => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let doctors = await db.User.findAll({
+                where: {
+                    roleId: 2,  // Chỉ lấy người dùng là bác sĩ
+                    id: { [db.Sequelize.Op.ne]: 1 }  // Loại trừ admin (ID=1)
+                },
+                attributes: {
+                    exclude: ['password']
+                }
+            });
+            
+            resolve({
+                errCode: 0,
+                data: doctors
+            });
+        } catch (e) {
+            reject(e);
+        }
+    });
+};
+
 module.exports = {
     createDoctor: createDoctor,
     getInfoDoctors: getInfoDoctors,
@@ -303,5 +327,6 @@ module.exports = {
     getInfoStatistical: getInfoStatistical,
     getInfoDoctorChart: getInfoDoctorChart,
     createAllDoctorsSchedule: createAllDoctorsSchedule,
-    getAllDoctorsSchedule: getAllDoctorsSchedule
+    getAllDoctorsSchedule: getAllDoctorsSchedule,
+    getAllDoctors: getAllDoctors
 };
