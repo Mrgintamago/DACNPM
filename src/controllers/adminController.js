@@ -5,6 +5,7 @@ import specializationService from "./../services/specializationService";
 import supporterService from "./../services/supporterService";
 import doctorService from "./../services/doctorService";
 import multer from "multer";
+const bcrypt = require('bcryptjs');
 const db = require('../models');
 
 
@@ -974,8 +975,9 @@ let getSchedulesByDays = async (req, res) => {
         const { dates } = req.query;
         let dateList = [];
         
-        if (dates && Array.isArray(JSON.parse(dates))) {
-            dateList = JSON.parse(dates);
+        const parsedDates = dates ? JSON.parse(dates) : null;
+        if (parsedDates && Array.isArray(parsedDates)) {
+            dateList = parsedDates;
         } else {
             // Mặc định là 3 ngày
             for (let i = 0; i < 3; i++) {
@@ -1024,7 +1026,7 @@ let getScheduleDetailPage = async (req, res) => {
         const date = req.query.date;
         
         if (!date) {
-            return res.redirect('/users/admin/manage-schedule');
+            return res.redirect('/users/admin/manage-schedule-for-doctors');
         }
         
         return res.render('main/users/admins/scheduleDetail.ejs', {
@@ -1037,6 +1039,70 @@ let getScheduleDetailPage = async (req, res) => {
             user: req.user,
             error: e.message
         });
+    }
+};
+
+// Thêm hàm controller mới
+let getCreateSupporterPage = async (req, res) => {
+    try {
+        return res.render('main/users/admins/createSupporter.ejs', {
+            user: req.user,
+            errors: req.flash('errors'),
+            success: req.flash('success')
+        });
+    } catch (e) {
+        console.error("Error in getCreateSupporterPage:", e);
+        return res.render('main/users/error.ejs', {
+            user: req.user,
+            error: e.message
+        });
+    }
+};
+
+// Thêm hàm API mới
+let createSupporter = async (req, res) => {
+    try {
+        const { name, email, password, phone, address, description, isActive } = req.body;
+        
+        // Validate
+        if (!name || !email || !password) {
+            req.flash('errors', 'Vui lòng nhập đầy đủ thông tin bắt buộc');
+            return res.redirect('/users/manage/supporter/create');
+        }
+        
+        // Kiểm tra email đã tồn tại chưa
+        const existingUser = await db.User.findOne({
+            where: { email: email },
+            raw: true
+        });
+        
+        if (existingUser) {
+            req.flash('errors', 'Email đã tồn tại trong hệ thống');
+            return res.redirect('/users/manage/supporter/create');
+        }
+        
+        // Hash password
+        const salt = bcrypt.genSaltSync(10);
+        const hashPassword = bcrypt.hashSync(password, salt);
+        
+        // Tạo user mới với role là supporter (role ID 3)
+        await db.User.create({
+            name: name,
+            email: email,
+            password: hashPassword,
+            phone: phone || null,
+            address: address || null,
+            roleId: 3, // Supporter role
+            isActive: isActive === '1' ? true : false,
+            description: description || null
+        });
+        
+        req.flash('success', 'Thêm tư vấn viên thành công');
+        return res.redirect('/users/manage/supporter'); // Redirect trở lại trang danh sách sau khi thêm thành công
+    } catch (e) {
+        console.error("Error in createSupporter:", e);
+        req.flash('errors', 'Lỗi hệ thống: ' + e.message);
+        return res.redirect('/users/manage/supporter/create');
     }
 };
 
@@ -1083,4 +1149,7 @@ module.exports = {
     getAllDoctors: getAllDoctors,
     getSchedulesByDays: getSchedulesByDays,
     getScheduleDetailPage: getScheduleDetailPage,
+
+    getCreateSupporterPage: getCreateSupporterPage,
+    createSupporter: createSupporter,
 };
