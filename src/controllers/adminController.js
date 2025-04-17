@@ -717,6 +717,207 @@ let deleteSupporter = async (req, res) => {
     }
 };
 
+// Sửa lại hàm handleBulkCreateSchedule
+let handleBulkCreateSchedule = async (req, res) => {
+    try {
+        console.log("Starting bulk schedule creation process");
+        
+        // Thiết lập các ngày (3 ngày tới)
+        const today = new Date();
+        const dates = [];
+        
+        for (let i = 0; i < 3; i++) {
+            const nextDay = new Date(today);
+            nextDay.setDate(today.getDate() + i);
+            
+            // Format: DD/MM/YYYY
+            const day = String(nextDay.getDate()).padStart(2, '0');
+            const month = String(nextDay.getMonth() + 1).padStart(2, '0');
+            const year = nextDay.getFullYear();
+            dates.push(`${day}/${month}/${year}`);
+        }
+        
+        console.log("Creating schedules for dates:", dates);
+        
+        // Khung giờ mặc định
+        const timeSlots = [
+            '08:00 - 09:00', '09:00 - 10:00', '10:00 - 11:00',
+            '13:00 - 14:00', '14:00 - 15:00', '15:00 - 16:00'
+        ];
+        
+        // Lấy danh sách bác sĩ từ bảng Users
+        try {
+            // Thay đổi cách truy vấn để lấy chính xác mảng các user có roleId = 2
+            const doctors = await db.User.findAll({
+                where: {
+                    roleId: 2,
+                    isActive: 1,
+                    deletedAt: null
+                },
+                attributes: ['id'],
+                raw: true
+            });
+            
+            // Kiểm tra và log kết quả truy vấn
+            console.log("Query result:", doctors);
+            
+            if (!doctors || doctors.length === 0) {
+                return res.status(200).json({
+                    errCode: 1,
+                    errMessage: 'Không tìm thấy bác sĩ nào trong hệ thống'
+                });
+            }
+            
+            // Lấy mảng chỉ chứa các ID của bác sĩ
+            const doctorIds = doctors.map(doctor => doctor.id);
+            console.log("Doctor IDs extracted from database:", doctorIds);
+            
+            // Khởi tạo biến đếm
+            let successCount = 0;
+            let errorCount = 0;
+            
+            // Xử lý từng bác sĩ
+            for (const doctorId of doctorIds) {
+                console.log(`Processing doctor ID: ${doctorId}`);
+                
+                // Xử lý từng ngày
+                for (const date of dates) {
+                    try {
+                        console.log(`Creating schedule for doctor ${doctorId} on ${date}`);
+                        
+                        // Tạo lịch cho bác sĩ
+                        const result = await doctorService.bulkCreateSchedule({
+                            doctorId: doctorId,
+                            date: date,
+                            timeArr: timeSlots
+                        });
+                        
+                        if (result.errCode === 0) {
+                            successCount += (result.data?.length || 0);
+                            console.log(`Successfully created schedules for doctor ${doctorId} on ${date}`);
+                        } else {
+                            console.log(`Failed to create schedules for doctor ${doctorId} on ${date}: ${result.errMessage}`);
+                        }
+                    } catch (err) {
+                        errorCount++;
+                        console.error(`Error creating schedule for doctor ${doctorId} on ${date}:`, err);
+                    }
+                }
+            }
+            
+            return res.status(200).json({
+                errCode: 0,
+                errMessage: `Đã tạo thành công ${successCount} lịch khám cho các bác sĩ`,
+                data: {
+                    successCount,
+                    errorCount,
+                    doctorCount: doctorIds.length
+                }
+            });
+        } catch (dbError) {
+            console.error("Database error:", dbError);
+            return res.status(500).json({
+                errCode: -1,
+                errMessage: 'Lỗi truy vấn database: ' + dbError.message
+            });
+        }
+    } catch (e) {
+        console.error("Error in handleBulkCreateSchedule:", e);
+        return res.status(500).json({
+            errCode: -1,
+            errMessage: 'Lỗi server: ' + e.message
+        });
+    }
+};
+
+// Thêm vào adminController.js
+let getSchedulesList = async (req, res) => {
+    try {
+        // Lấy filter từ query params
+        const { doctorId, date } = req.query;
+        
+        // Xây dựng điều kiện tìm kiếm
+        let condition = {};
+        if (doctorId) condition.doctorId = doctorId;
+        if (date) condition.date = date;
+        
+        // Sửa lỗi - không sử dụng destructuring
+        const schedules = await db.sequelize.query(
+            `SELECT s.*, u.id as userId, u.name as doctorName, u.email as doctorEmail 
+             FROM Schedules s 
+             LEFT JOIN Users u ON s.doctorId = u.id 
+             WHERE ${doctorId ? 's.doctorId = :doctorId AND ' : ''} 
+                   ${date ? 's.date = :date AND ' : ''} 
+                   1=1 
+             ORDER BY s.date ASC, s.time ASC`,
+            {
+                replacements: { doctorId, date },
+                type: db.sequelize.QueryTypes.SELECT,
+                raw: true
+            }
+        );
+        
+        console.log("Schedules data type:", typeof schedules, Array.isArray(schedules));
+        
+        // Format lại kết quả để frontend dễ xử lý
+        const formattedSchedules = Array.isArray(schedules) ? schedules.map(schedule => ({
+            id: schedule.id,
+            doctorId: schedule.doctorId,
+            date: schedule.date,
+            time: schedule.time,
+            maxBooking: schedule.maxBooking,
+            sumBooking: schedule.sumBooking,
+            doctorData: {
+                id: schedule.userId,
+                name: schedule.doctorName,
+                email: schedule.doctorEmail
+            }
+        })) : [];
+        
+        return res.status(200).json({
+            errCode: 0,
+            errMessage: 'Lấy danh sách lịch khám thành công',
+            data: formattedSchedules
+        });
+    } catch (e) {
+        console.error("Error in getSchedulesList:", e);
+        return res.status(500).json({
+            errCode: -1,
+            errMessage: 'Lỗi server: ' + e.message
+        });
+    }
+};
+
+// API để lấy tất cả doctors
+let getAllDoctors = async (req, res) => {
+    try {
+        // Sử dụng raw query để lấy đúng cấu trúc dữ liệu từ bảng Users
+        const [doctors] = await db.sequelize.query(
+            `SELECT id, name, email 
+             FROM Users 
+             WHERE roleId = 2 
+             AND deletedAt IS NULL 
+             AND isActive = 1`,
+            {
+                type: db.sequelize.QueryTypes.SELECT,
+                raw: true
+            }
+        );
+        
+        return res.status(200).json({
+            errCode: 0,
+            errMessage: 'OK',
+            data: doctors
+        });
+    } catch (e) {
+        console.error("Error in getAllDoctors:", e);
+        return res.status(500).json({
+            errCode: -1,
+            errMessage: 'Lỗi server: ' + e.message
+        });
+    }
+};
+
 module.exports = {
     getManageDoctor: getManageDoctor,
     getCreateDoctor: getCreateDoctor,
@@ -753,5 +954,9 @@ module.exports = {
     getSupporterById: getSupporterById,
     getEditSupporterPage: getEditSupporterPage,
     putUpdateSupporter: putUpdateSupporter,
-    deleteSupporter: deleteSupporter
+    deleteSupporter: deleteSupporter,
+
+    handleBulkCreateSchedule: handleBulkCreateSchedule,
+    getSchedulesList: getSchedulesList,
+    getAllDoctors: getAllDoctors
 };

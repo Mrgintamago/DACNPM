@@ -493,104 +493,72 @@ let createFeedback = (data) => {
 let bulkCreateSchedule = (data) => {
     return new Promise(async (resolve, reject) => {
         try {
-            console.log("Received data:", data);
+            console.log(`Creating schedule for doctor ${data.doctorId} on ${data.date}`);
             
-            // Từ chối mọi yêu cầu tạo lịch cho admin (ID=1)
-            if (data.doctorId == 1) {
-                console.log("Rejecting schedule creation for admin (ID 1)");
-                resolve({
-                    errCode: 5,
-                    errMessage: 'Không thể tạo lịch cho tài khoản admin'
-                });
-                return;
-            }
-            
-            // Kiểm tra nếu đây là ID của bác sĩ thực sự
-            const doctor = await db.User.findOne({
-                where: {
-                    id: data.doctorId,
-                    roleId: 2 // Chỉ cho phép bác sĩ
-                }
-            });
-            
-            if (!doctor) {
-                console.log("Doctor not found or not a doctor. ID:", data.doctorId);
-                resolve({
-                    errCode: 6,
-                    errMessage: 'Không tìm thấy bác sĩ hoặc ID không phải là bác sĩ'
-                });
-                return;
-            }
-            
-            // Xóa đoạn code trùng lặp ở đây
-            
-            if (!data.doctorId || !data.date || !data.timeArr || !Array.isArray(data.timeArr) || data.timeArr.length === 0) {
+            // Validate input
+            if (!data.doctorId || !data.date || !data.timeArr || data.timeArr.length === 0) {
                 resolve({
                     errCode: 1,
-                    errMessage: 'Thiếu thông tin cần thiết'
+                    errMessage: 'Thiếu thông tin cần thiết',
+                    data: []
                 });
-                return; // Thêm return để tránh thực thi code phía dưới
+                return;
             }
             
-            // Tiếp tục code hiện tại...
-
-            // Chuẩn hóa định dạng ngày
-            let formattedDate = data.date;
-            
-            // Nếu format là YYYY-MM-DD, chuyển sang DD/MM/YYYY cho database
-            if (data.date.includes('-')) {
-                const parts = data.date.split('-');
-                if (parts.length === 3) {
-                    formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
-                    console.log("Converted to DD/MM/YYYY format:", formattedDate);
+            try {
+                // Sử dụng raw query để kiểm tra lịch đã tồn tại
+                const [existingSchedules] = await db.sequelize.query(
+                    `SELECT time FROM Schedules 
+                    WHERE doctorId = ? AND date = ?`,
+                    {
+                        replacements: [data.doctorId, data.date],
+                        type: db.sequelize.QueryTypes.SELECT
+                    }
+                );
+                
+                let existingTimes = existingSchedules ? existingSchedules.map(schedule => schedule.time) : [];
+                console.log(`Found ${existingTimes.length} existing schedules for doctor ${data.doctorId} on ${data.date}`);
+                
+                // Lọc ra các khung giờ chưa tồn tại
+                let newTimeSlots = data.timeArr.filter(time => !existingTimes.includes(time));
+                
+                if (newTimeSlots.length === 0) {
+                    console.log(`All time slots already exist for doctor ${data.doctorId} on ${data.date}`);
+                    resolve({
+                        errCode: 0,
+                        errMessage: `Tất cả lịch khám đã tồn tại cho bác sĩ ${data.doctorId} ngày ${data.date}`,
+                        data: []
+                    });
+                    return;
                 }
-            }
-            
-            // Xử lý mảng thời gian và tạo các bản ghi
-            let schedule = data.timeArr.map(item => {
-                return {
+                
+                // Tạo các đối tượng lịch mới
+                const MAX_SCHEDULE_NUMBER = 10;
+                let schedulesToCreate = newTimeSlots.map(time => ({
                     doctorId: data.doctorId,
-                    date: formattedDate, // Sử dụng định dạng đã chuẩn hóa
-                    time: item,
+                    date: data.date,
+                    time: time,
                     maxBooking: MAX_SCHEDULE_NUMBER,
                     sumBooking: 0,
                     createdAt: new Date(),
                     updatedAt: new Date()
-                };
-            });
-            
-            // Kiểm tra lịch đã tồn tại
-            let existing = await db.Schedule.findAll({
-                where: {
-                    doctorId: data.doctorId,
-                    date: formattedDate, // Sử dụng định dạng đã chuẩn hóa
-                    time: { [Op.in]: data.timeArr }
-                }
-            });
-            
-            // Phần code còn lại...
-
-            if (existing && existing.length > 0) {
-                // Lọc ra những khung giờ chưa có trong database
-                let existingTimes = existing.map(item => item.time);
-                schedule = schedule.filter(item => !existingTimes.includes(item.time));
-            }
-            
-            console.log("Schedule objects to be created:", schedule);
-            
-            // Nếu có lịch mới cần thêm
-            if (schedule && schedule.length > 0) {
-                let result = await db.Schedule.bulkCreate(schedule);
-                console.log("Created schedules:", result);
-                await cleanupAdminSchedules();
+                }));
+                
+                // Tạo lịch mới trong database
+                const created = await db.Schedule.bulkCreate(schedulesToCreate);
+                console.log(`Created ${created.length} new schedules for doctor ${data.doctorId} on ${data.date}`);
+                
                 resolve({
                     errCode: 0,
-                    errMessage: 'Tạo lịch khám thành công'
+                    errMessage: `Đã tạo ${created.length} lịch khám mới cho bác sĩ ${data.doctorId} ngày ${data.date}`,
+                    data: created
                 });
-            } else {
+            } catch (dbError) {
+                console.error("Database error in bulkCreateSchedule:", dbError);
                 resolve({
-                    errCode: 3,
-                    errMessage: 'Các khung giờ đã tồn tại trong lịch'
+                    errCode: 2,
+                    errMessage: `Lỗi database: ${dbError.message}`,
+                    data: []
                 });
             }
         } catch (e) {
@@ -652,21 +620,23 @@ let cleanupAdminSchedules = () => {
 let getDoctorsBySpecialization = (specializationId) => {
     return new Promise(async (resolve, reject) => {
         try {
+            console.log(`Getting doctors for specialization ${specializationId}`);
+            
+            // Validate đầu vào
             if (!specializationId) {
                 resolve([]);
                 return;
             }
             
-            console.log("Querying doctors with specializationId:", specializationId);
-            
-            // Tìm doctorId từ bảng Doctor_User theo specializationId
-            let doctorRelations = await db.Doctor_User.findAll({
-                where: {
-                    specializationId: specializationId
-                },
-                attributes: ['doctorId'],
-                raw: true
-            });
+            // Sử dụng đúng tên bảng doctor_users thay vì Doctor_User
+            let doctorRelations = await db.sequelize.query(
+                `SELECT doctorId FROM doctor_users 
+                WHERE specializationId = ?`,
+                {
+                    replacements: [specializationId],
+                    type: db.sequelize.QueryTypes.SELECT
+                }
+            );
             
             if (!doctorRelations || doctorRelations.length === 0) {
                 console.log(`No doctors found for specialization ${specializationId}`);
@@ -688,14 +658,6 @@ let getDoctorsBySpecialization = (specializationId) => {
                     exclude: ['password']
                 },
                 raw: true
-            });
-            
-            // Map qua kết quả để thêm đường dẫn ảnh đầy đủ nếu cần
-            doctors = doctors.map(doctor => {
-                if (doctor.image && !doctor.image.includes('http')) {
-                    console.log(`Original image path: ${doctor.image}`);
-                }
-                return doctor;
             });
             
             console.log(`Retrieved ${doctors.length} doctor records`);

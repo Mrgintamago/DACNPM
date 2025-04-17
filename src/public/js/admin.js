@@ -1411,3 +1411,494 @@ $(document).ready(function() {
     });
 });
 
+$('#btn-confirm-bulk-schedule').on('click', function() {
+    // Thêm hiển thị loading
+    $('#processLoading').removeClass('d-none');
+    
+    // Lấy thông tin ngày đã chọn
+    const selectedDates = ['17/04/2025', '18/04/2025', '19/04/2025']; // Hoặc lấy từ form
+    const timeSlots = [
+        '08:00 - 09:00', '09:00 - 10:00', '10:00 - 11:00',
+        '13:00 - 14:00', '14:00 - 15:00', '15:00 - 16:00'
+    ]; // Hoặc lấy từ form
+    
+    // Log để debug
+    console.log("Creating bulk schedule with dates:", selectedDates);
+    console.log("Time slots:", timeSlots);
+    
+    // Tạo lịch cho từng bác sĩ thay vì cố gắng tạo tất cả cùng lúc
+    let doctorIds = [2, 3, 4, 5, 6, 7];
+    let successCount = 0;
+    let promises = [];
+    
+    doctorIds.forEach(doctorId => {
+        selectedDates.forEach(date => {
+            let promise = $.ajax({
+                url: '/api/bulk-create-schedule',
+                method: 'POST',
+                data: {
+                    doctorId: doctorId,
+                    date: date,
+                    timeArr: timeSlots
+                },
+                success: function(res) {
+                    if(res.errCode === 0) {
+                        successCount++;
+                    } else {
+                        console.error(`Failed for doctor ${doctorId}, date ${date}: ${res.errMessage}`);
+                    }
+                }
+            });
+            promises.push(promise);
+        });
+    });
+    
+    // Xử lý sau khi tất cả requests hoàn tất
+    Promise.all(promises).then(() => {
+        $('#processLoading').addClass('d-none');
+        
+        if(successCount > 0) {
+            alertify.success(`Đã tạo lịch khám thành công cho ${successCount} bác sĩ`);
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        } else {
+            alertify.error('Không thể tạo lịch khám. Vui lòng thử lại.');
+        }
+    }).catch(error => {
+        $('#processLoading').addClass('d-none');
+        alertify.error('Đã xảy ra lỗi: ' + error.message);
+    });
+});
+
+// Thêm xử lý cho nút OK trong modal xác nhận
+$('#ok-btn').on('click', function() {
+    // Hiện loading
+    $('#processLoading').removeClass('d-none');
+    
+    // Gọi API tạo lịch hàng loạt
+    $.ajax({
+        url: '/api/bulk-create-schedule',
+        method: 'POST',
+        success: function(res) {
+            // Ẩn loading
+            $('#processLoading').addClass('d-none');
+            
+            if (res.errCode === 0) {
+                // Thông báo thành công
+                alertify.success(res.errMessage);
+                
+                // Tự động tải lại trang sau 1.5 giây
+                setTimeout(function() {
+                    location.reload();
+                }, 1500);
+            } else {
+                // Thông báo lỗi
+                alertify.error(res.errMessage || 'Đã có lỗi xảy ra khi tạo lịch khám');
+            }
+        },
+        error: function(err) {
+            // Ẩn loading
+            $('#processLoading').addClass('d-none');
+            
+            // Thông báo lỗi
+            alertify.error('Đã có lỗi xảy ra: ' + (err.responseJSON?.errMessage || 'Không thể kết nối với server'));
+        }
+    });
+});
+
+// Tìm và sửa đoạn xử lý nút OK
+$(document).ready(function() {
+    $('#ok-btn, .confirm-ok-btn, .btn-ok, #OK').on('click', function() {
+        // Hiển thị loading
+        $('#processLoading').removeClass('d-none');
+        
+        console.log("OK button clicked - Creating schedules for all doctors");
+        
+        // Lấy danh sách ngày (3 ngày tới)
+        const today = new Date();
+        const dates = [];
+        
+        for (let i = 0; i < 3; i++) {
+            const nextDay = new Date(today);
+            nextDay.setDate(today.getDate() + i);
+            
+            // Format: DD/MM/YYYY
+            const day = String(nextDay.getDate()).padStart(2, '0');
+            const month = String(nextDay.getMonth() + 1).padStart(2, '0');
+            const year = nextDay.getFullYear();
+            dates.push(`${day}/${month}/${year}`);
+        }
+        
+        // Danh sách khung giờ mặc định
+        const timeSlots = [
+            '08:00 - 09:00', '09:00 - 10:00', '10:00 - 11:00',
+            '13:00 - 14:00', '14:00 - 15:00', '15:00 - 16:00'
+        ];
+        
+        // Gọi API để tạo lịch hàng loạt
+        $.ajax({
+            url: '/api/bulk-create-schedule',
+            method: 'POST',
+            data: {
+                dates: dates,
+                timeSlots: timeSlots
+            },
+            success: function(response) {
+                // Ẩn loading
+                $('#processLoading').addClass('d-none');
+                
+                // Đóng modal nếu đang mở
+                $('.modal').modal('hide');
+                
+                if (response.errCode === 0) {
+                    alertify.success(response.errMessage || "Đã tạo lịch khám thành công cho tất cả bác sĩ!");
+                    
+                    // Tải lại trang sau 1.5 giây
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    alertify.error(response.errMessage || "Đã xảy ra lỗi khi tạo lịch khám.");
+                }
+            },
+            error: function(err) {
+                // Ẩn loading
+                $('#processLoading').addClass('d-none');
+                $('.modal').modal('hide');
+                
+                alertify.error("Đã xảy ra lỗi: " + (err.responseJSON?.errMessage || "Không thể kết nối với server"));
+            }
+        });
+    });
+});
+
+// Xử lý nút OK trong hộp thoại xác nhận
+$(".modal-confirm .btn-primary").on("click", function() {
+    // Hiển thị trạng thái đang xử lý
+    $("#processLoading").removeClass("d-none");
+    
+    // Gọi API tạo lịch hàng loạt
+    $.ajax({
+        url: "/api/bulk-create-schedule",
+        method: "POST",
+        success: function(response) {
+            // Ẩn trạng thái xử lý
+            $("#processLoading").addClass("d-none");
+            
+            if (response.errCode === 0) {
+                // Đóng modal
+                $(".modal").modal("hide");
+                
+                // Hiển thị thông báo thành công
+                alertify.success(response.errMessage);
+                
+                // Tải lại trang sau 1.5 giây
+                setTimeout(function() {
+                    window.location.reload();
+                }, 1500);
+            } else {
+                // Hiển thị thông báo lỗi
+                alertify.error(response.errMessage || "Đã xảy ra lỗi khi tạo lịch khám");
+            }
+        },
+        error: function(xhr, status, error) {
+            // Ẩn trạng thái xử lý
+            $("#processLoading").addClass("d-none");
+            
+            // Hiển thị thông báo lỗi
+            alertify.error("Đã xảy ra lỗi: " + error);
+        }
+    });
+});
+
+// Hàm hiển thị thông báo thành công với chi tiết
+function showSuccessNotification(createdCount, errorCount) {
+    let message = `Đã tạo ${createdCount} lịch khám thành công`;
+    
+    if (errorCount > 0) {
+        message += `, ${errorCount} thất bại`;
+    }
+    
+    // Tạo một div thông báo đẹp mắt hơn
+    const notification = $(`
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <strong>Hoàn tất!</strong> ${message}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    `);
+    
+    // Thêm vào trang và tự động đóng sau 5 giây
+    $("#notificationArea").html(notification);
+    setTimeout(() => {
+        notification.alert('close');
+    }, 5000);
+}
+
+// Xóa tất cả handler hiện tại cho nút OK và thay bằng handler mới
+$(document).ready(function() {
+    // Xử lý nút OK trong modal xác nhận tạo lịch
+    $(".modal-confirm .btn-primary, #ok-btn, #OK").on("click", function() {
+        // Hiển thị thông báo đang xử lý
+        $("#processLoading").removeClass("d-none");
+        
+        // Hiển thị modal thông báo (nếu chưa hiển thị)
+        if ($('#loadingModal').length) {
+            $('#loadingModal').modal('show');
+        }
+        
+        // Đóng modal xác nhận nếu đang mở
+        $('.modal-confirm').modal('hide');
+        
+        console.log("Sending bulk schedule creation request");
+        
+        // Gọi API để tạo lịch
+        $.ajax({
+            url: "/api/bulk-create-schedule",
+            method: "POST",
+            timeout: 60000, // Tăng timeout lên 60s vì quá trình có thể mất thời gian
+            success: function(response) {
+                // Ẩn thông báo đang xử lý
+                $("#processLoading").addClass("d-none");
+                
+                // Đóng modal loading nếu đang mở
+                if ($('#loadingModal').length) {
+                    $('#loadingModal').modal('hide');
+                }
+                
+                if (response.errCode === 0) {
+                    const { successCount, failCount, doctorCount } = response.data;
+                    
+                    // Hiển thị thông báo thành công
+                    alertify.success(`Đã tạo ${successCount} lịch khám thành công cho ${doctorCount} bác sĩ`);
+                    
+                    // Tải lại trang sau 2 giây
+                    setTimeout(function() {
+                        location.reload();
+                    }, 2000);
+                } else {
+                    // Hiển thị thông báo lỗi
+                    alertify.error(response.errMessage || "Đã xảy ra lỗi khi tạo lịch khám");
+                }
+            },
+            error: function(xhr, status, error) {
+                // Ẩn thông báo đang xử lý
+                $("#processLoading").addClass("d-none");
+                
+                // Đóng modal loading nếu đang mở
+                if ($('#loadingModal').length) {
+                    $('#loadingModal').modal('hide');
+                }
+                
+                // Hiển thị thông báo lỗi
+                alertify.error("Lỗi khi tạo lịch: " + (xhr.responseJSON?.errMessage || error || "Không thể kết nối đến server"));
+                console.error("Error details:", xhr.responseText);
+            }
+        });
+    });
+});
+
+// Thêm vào phần xử lý cho nút tạo lịch hàng loạt
+$(document).ready(function() {
+    // Xử lý nút OK trong modal xác nhận tạo lịch
+    $("#ok-btn, .modal-confirm .btn-primary, #OK").off('click').on('click', function() {
+        // Ẩn modal xác nhận nếu đang mở
+        $(".modal-confirm, .confirm-modal").modal('hide');
+        
+        // Hiển thị modal loading
+        $('#loadingModal').modal('show');
+        
+        // Gọi API tạo lịch hàng loạt
+        $.ajax({
+            url: "/api/bulk-create-schedule",
+            method: "POST",
+            timeout: 60000, // Tăng timeout lên 60s vì quá trình có thể mất thời gian
+            success: function(response) {
+                // Ẩn modal loading
+                $('#loadingModal').modal('hide');
+                
+                if (response.errCode === 0) {
+                    const { successCount, failCount, doctorCount } = response.data || { successCount: 0, failCount: 0, doctorCount: 0 };
+                    
+                    // Hiển thị thông báo thành công
+                    alertify.success(`Đã tạo ${successCount} lịch khám thành công cho các bác sĩ`);
+                    
+                    // Tải lại trang sau 2 giây
+                    setTimeout(function() {
+                        location.reload();
+                    }, 2000);
+                } else {
+                    // Hiển thị thông báo lỗi
+                    alertify.error(response.errMessage || "Đã xảy ra lỗi khi tạo lịch khám");
+                }
+            },
+            error: function(xhr, status, error) {
+                // Ẩn modal loading
+                $('#loadingModal').modal('hide');
+                
+                // Hiển thị thông báo lỗi
+                alertify.error("Lỗi khi tạo lịch: " + (xhr.responseJSON?.errMessage || error || "Không thể kết nối đến server"));
+                console.error("Error details:", xhr.responseText);
+            }
+        });
+    });
+});
+
+// Đây là handler nút OK duy nhất cần giữ lại
+$(document).ready(function() {
+    $("#ok-btn, .modal-confirm .btn-primary, #OK").off('click').on('click', function() {
+        // Hiển thị loading
+        $("#processLoading").removeClass("d-none");
+        
+        console.log("Creating schedules for all doctors");
+        
+        // Gọi API tạo lịch hàng loạt
+        $.ajax({
+            url: "/api/bulk-create-schedule",
+            method: "POST",
+            timeout: 60000, // Tăng timeout lên 60s
+            success: function(response) {
+                // Ẩn loading
+                $("#processLoading").addClass("d-none");
+                
+                // Đóng tất cả modal nếu đang mở
+                $(".modal").modal("hide");
+                
+                if (response.errCode === 0) {
+                    const { successCount, failCount, doctorCount } = response.data || 
+                          { successCount: 0, failCount: 0, doctorCount: 0 };
+                    
+                    // Hiển thị thông báo thành công
+                    alertify.success(`Đã tạo ${successCount} lịch khám thành công cho ${doctorCount} bác sĩ`);
+                    
+                    // Tải lại trang sau 2 giây
+                    setTimeout(function() {
+                        location.reload();
+                    }, 2000);
+                } else {
+                    // Hiển thị thông báo lỗi
+                    alertify.error(response.errMessage || "Đã xảy ra lỗi khi tạo lịch khám");
+                }
+            },
+            error: function(xhr, status, error) {
+                // Ẩn loading
+                $("#processLoading").addClass("d-none");
+                
+                // Hiển thị thông báo lỗi
+                alertify.error("Lỗi khi tạo lịch: " + (xhr.responseJSON?.errMessage || error));
+            }
+        });
+    });
+});
+
+// Thêm ở cuối file admin.js
+$(document).ready(function() {
+    // Kiểm tra nếu đang ở trang danh sách lịch khám
+    if ($("#scheduleTable").length) {
+        // Gọi API để lấy danh sách lịch khám khi trang được tải
+        loadScheduleList();
+        
+        // Xử lý khi bấm nút tìm kiếm
+        $('#btnSearch').on('click', function() {
+            loadScheduleList();
+        });
+    }
+});
+
+function loadScheduleList() {
+    // Lấy giá trị filter
+    const doctorId = $('#doctorId').val();
+    const date = $('#dateSearch').val();
+    
+    // Hiển thị loading
+    $('#scheduleTable tbody').html('<tr><td colspan="3" class="text-center">Đang tải dữ liệu...</td></tr>');
+    
+    // Gọi API với filter
+    $.ajax({
+        url: '/api/get-schedules',
+        method: 'GET',
+        data: {
+            doctorId: doctorId,
+            date: date
+        },
+        success: function(response) {
+            if (response.errCode === 0) {
+                displaySchedules(response.data);
+            } else {
+                $('#scheduleTable tbody').html('<tr><td colspan="3" class="text-center text-danger">Lỗi: ' + response.errMessage + '</td></tr>');
+            }
+        },
+        error: function(xhr, status, error) {
+            $('#scheduleTable tbody').html('<tr><td colspan="3" class="text-center text-danger">Lỗi kết nối server</td></tr>');
+            console.error("Error:", error);
+        }
+    });
+}
+
+function displaySchedules(schedules) {
+    // Xóa dữ liệu cũ
+    $('#scheduleTable tbody').empty();
+    
+    if (schedules && schedules.length > 0) {
+        // Hiển thị từng dòng lịch
+        schedules.forEach(function(schedule) {
+            // Đảm bảo truy cập đúng dữ liệu bác sĩ qua alias doctorData
+            const doctorName = schedule.doctorData ? 
+                schedule.doctorData.lastName + ' ' + schedule.doctorData.firstName : 
+                'Không xác định';
+                
+            const row = `
+                <tr>
+                    <td>${doctorName}</td>
+                    <td>${schedule.date}</td>
+                    <td>${schedule.time}</td>
+                </tr>
+            `;
+            $('#scheduleTable tbody').append(row);
+        });
+    } else {
+        $('#scheduleTable tbody').html('<tr><td colspan="3" class="text-center">Không có lịch khám nào</td></tr>');
+    }
+}
+
+// Thêm ngay sau đoạn code của bước 3
+function loadDoctorsList() {
+    $.ajax({
+        url: '/api/get-doctors',
+        method: 'GET',
+        success: function(response) {
+            if (response.errCode === 0 && response.data) {
+                const doctors = response.data;
+                let options = '<option value="">Tất cả bác sĩ</option>';
+                
+                doctors.forEach(function(doctor) {
+                    options += `<option value="${doctor.id}">${doctor.lastName} ${doctor.firstName}</option>`;
+                });
+                
+                $('#doctorId').html(options);
+            }
+        },
+        error: function(err) {
+            console.error("Error loading doctors:", err);
+        }
+    });
+}
+
+// Cập nhật hàm document.ready để gọi loadDoctorsList
+$(document).ready(function() {
+    // Code đã có...
+    
+    // Thêm dòng này
+    if ($("#scheduleTable").length) {
+        loadDoctorsList(); // Thêm dòng này để load danh sách bác sĩ
+        loadScheduleList();
+        
+        // Xử lý khi bấm nút tìm kiếm
+        $('#btnSearch').on('click', function() {
+            loadScheduleList();
+        });
+    }
+});
+

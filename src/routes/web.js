@@ -285,6 +285,15 @@ let initRoutes = (app) => {
     // Route cho trang chi tiết chuyên khoa
     router.get('/detail/specialization/:id', home.getSpecialization);
 
+    // Kiểm tra route API bulk-create-schedule đã tồn tại
+    router.post('/api/bulk-create-schedule', admin.handleBulkCreateSchedule);
+
+    // Thêm route API để lấy danh sách lịch khám
+    router.get('/api/get-schedules', auth.checkLoggedIn, admin.getSchedulesList);
+
+    // API để lấy tất cả bác sĩ
+    router.get('/api/get-all-doctors', admin.getAllDoctors);
+
     return app.use("/", router);
 };
 module.exports = initRoutes;

@@ -31,6 +31,9 @@ Object.keys(db).forEach(modelName => {
   }
 });
 
+db.User.hasMany(db.Schedule, { foreignKey: 'doctorId' });
+db.Schedule.belongsTo(db.User, { foreignKey: 'doctorId', as: 'doctorData' });
+
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
