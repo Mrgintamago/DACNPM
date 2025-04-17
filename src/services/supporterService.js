@@ -150,6 +150,56 @@ let getPostsPagination = (page, limit, role) => {
         }
     });
 };
+// Post
+let getPostPagination = (page, limit, role) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let posts = "";
+            //only get bài đăng y khoa
+            if (role === "admin") {
+                posts = await db.Post.findAndCountAll({
+                    offset: (page - 1) * limit,
+                    limit: limit,
+                    attributes: ['id', 'title', 'contentMarkdown', 'contentHTML', 'createdAt', 'writerId'],
+                    order: [
+                        ['createdAt', 'DESC']
+                    ],
+                });
+            } else {
+                posts = await db.Post.findAndCountAll({
+                    // where: {
+                    //     forDoctorId: -1,
+                    //     forSpecializationId: -1,
+                    //     forClinicId: -1
+                    // },
+                    offset: (page - 1) * limit,
+                    limit: limit,
+                    attributes: ['id', 'title', 'contentMarkdown', 'contentHTML', 'createdAt', 'writerId'],
+                    order: [
+                        ['createdAt', 'DESC']
+                    ],
+                });
+            }
+
+            let total = Math.ceil(posts.count / limit);
+
+            await Promise.all(posts.rows.map(async (post) => {
+                let supporter = await helper.getSupporterById(post.writerId);
+                let dateClient = helper.convertDateClient(post.createdAt);
+                post.setDataValue('writerName', supporter.name);
+                post.setDataValue('dateClient', dateClient);
+                return post;
+            }));
+
+            resolve({
+                posts: posts,
+                total: total
+            });
+        } catch (e) {
+            reject(e);
+        }
+    });
+};
 
 // Hanbook
 let getHandbookPagination = (page, limit, role) => {
@@ -272,5 +322,6 @@ module.exports = {
     putUpdatePost: putUpdatePost,
     doneComment: doneComment,
     getDetailHandbook: getDetailHandbook, //
-    getHandbookPagination: getHandbookPagination //
+    getHandbookPagination: getHandbookPagination, //
+    getPostPagination: getPostPagination,//
 };
