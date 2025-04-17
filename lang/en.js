@@ -51,7 +51,7 @@ export const transMailRemedy = {
               Sau khi bạn đã khám tại phòng khám của bác sĩ <b>${data.doctor}</b>, bạn có thể xem chi tiết hóa đơn từ file đính kèm email này. </h4>
               <div>Mật khẩu để giải nén file đính kèm có dạng như sau: <i>Họ và tên đầy đủ không dấu - 3 chữ số đầu tiên của số điện thoại - 2 chữ số cuối của năm sinh của bạn.</i></div>
               <br>
-              <div>Ví dụ: Họ và tên: Đốc To, với số điện thoại đã đăng ký: 0123456789 và năm sinh: 1995, mật khẩu giải nén là: <b>DoctorDoctor</b></div>
+              <div>Ví dụ: Họ và tên: Hary Pham, với số điện thoại đã đăng ký: 0123456789 và năm sinh: 1910, mật khẩu giải nén là: <b>harypham-012-10</b></div>
               <br>
               <div>Trong trường hợp không nhận được file đính kèm hoặc không giải nén được, vui lòng liên hệ với tổng đài hỗ trợ <b>911 911</b></div>
               <h4>Xin cảm ơn!</h4>`;

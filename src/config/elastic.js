@@ -16,11 +16,11 @@
 // });
 
 
-// // DELETE /doctorcare_
+// // DELETE /doctorcare_haryphamdev
 // //
-// // DELETE /doctorcare_/posts/1
+// // DELETE /doctorcare_haryphamdev/posts/1
 // //
-// // PUT doctorcare_
+// // PUT doctorcare_haryphamdev
 // // {
 // //     "mappings": {
 // //     "type_name": {
@@ -44,21 +44,21 @@
 // // }
 // // }
 // //
-// // PUT /doctorcare_/post/2
+// // PUT /doctorcare_haryphamdev/post/2
 // // {
 // //     "postId": "3",
 // //     "writerId": "6",
 // //     "title": "test post 2",
-// //     "content":"Lorem Ipsum is  doctor  simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum",
+// //     "content":"Lorem Ipsum is  doctor haryphamdev simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum",
 // //     "image":"default"
 // // }
 // //
 // //
-// // GET /doctorcare_/posts/_search
+// // GET /doctorcare_haryphamdev/posts/_search
 // // {
 // //     "query": {
 // //     "multi_match": {
-// //         "query": "test post ",
+// //         "query": "test post haryphamdev",
 // //             "type": "most_fields",
 // //             "fields": [ "title", "content" ]
 // //     }

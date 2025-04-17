@@ -43,8 +43,16 @@ let getInfoDoctors = () => {
                     let clinic = await helper.getClinicById(doctor.Doctor_User.clinicId);
                     let specialization = await helper.getSpecializationById(doctor.Doctor_User.specializationId);
                     let countBooking = doctor.Patients.length;
-                    doctor.setDataValue('clinicName', clinic.name);
-                    doctor.setDataValue('specializationName', specialization.name);
+                    if (clinic) {
+                        doctor.setDataValue('clinicName', clinic.name);
+                    } else {
+                        doctor.setDataValue('clinicName', 'Chưa có phòng khám');
+                    }
+                    if (specialization) {
+                        doctor.setDataValue('specializationName', specialization.name);
+                    } else {
+                        doctor.setDataValue('specializationName', 'Chưa có chuyên khoa');
+                    }
                     doctor.setDataValue('countBooking', countBooking);
                 } else {
                     doctor.setDataValue('clinicName', "null");
