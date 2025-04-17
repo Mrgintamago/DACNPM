@@ -649,6 +649,64 @@ let cleanupAdminSchedules = () => {
     });
 };
 
+let getDoctorsBySpecialization = (specializationId) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!specializationId) {
+                resolve([]);
+                return;
+            }
+            
+            console.log("Querying doctors with specializationId:", specializationId);
+            
+            // Tìm doctorId từ bảng Doctor_User theo specializationId
+            let doctorRelations = await db.Doctor_User.findAll({
+                where: {
+                    specializationId: specializationId
+                },
+                attributes: ['doctorId'],
+                raw: true
+            });
+            
+            if (!doctorRelations || doctorRelations.length === 0) {
+                console.log(`No doctors found for specialization ${specializationId}`);
+                resolve([]);
+                return;
+            }
+            
+            // Lấy danh sách doctorId
+            let doctorIds = doctorRelations.map(item => item.doctorId);
+            console.log(`Found ${doctorIds.length} doctor IDs for specialization ${specializationId}:`, doctorIds);
+            
+            // Lấy thông tin chi tiết của các bác sĩ
+            let doctors = await db.User.findAll({
+                where: {
+                    id: { [db.Sequelize.Op.in]: doctorIds },
+                    roleId: 2 // Role ID của bác sĩ
+                },
+                attributes: {
+                    exclude: ['password']
+                },
+                raw: true
+            });
+            
+            // Map qua kết quả để thêm đường dẫn ảnh đầy đủ nếu cần
+            doctors = doctors.map(doctor => {
+                if (doctor.image && !doctor.image.includes('http')) {
+                    console.log(`Original image path: ${doctor.image}`);
+                }
+                return doctor;
+            });
+            
+            console.log(`Retrieved ${doctors.length} doctor records`);
+            resolve(doctors);
+        } catch (e) {
+            console.log("Error in getDoctorsBySpecialization:", e);
+            reject(e);
+        }
+    });
+};
+
 module.exports = {
     getDoctorForFeedbackPage: getDoctorForFeedbackPage,
     getDoctorWithSchedule: getDoctorWithSchedule,
@@ -668,5 +726,6 @@ module.exports = {
     createFeedback: createFeedback,
     bulkCreateSchedule: bulkCreateSchedule,
     getDoctorsForSchedule: getDoctorsForSchedule,
-    cleanupAdminSchedules: cleanupAdminSchedules
+    cleanupAdminSchedules: cleanupAdminSchedules,
+    getDoctorsBySpecialization: getDoctorsBySpecialization,
 };

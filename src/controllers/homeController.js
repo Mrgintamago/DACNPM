@@ -452,6 +452,51 @@ let getPostSearchDebug = async (req, res) => {
     }
 };
 
+// Tìm hàm xử lý hiển thị trang chi tiết chuyên khoa
+let getSpecialization = async (req, res) => {
+    try {
+        const id = req.params.id;
+        
+        if (!id) {
+            console.log('Missing specialization ID');
+            return res.render('main/404.ejs');
+        }
+        
+        console.log("Finding specialization with ID:", id);
+        
+        // Lấy thông tin chuyên khoa
+        let specialization = await specializationService.getSpecializationById(id);
+        // Lấy danh sách tất cả chuyên khoa để hiển thị sidebar
+        let listSpecializations = await specializationService.getAllSpecializations();
+        
+        // Lấy danh sách bác sĩ thuộc chuyên khoa này
+        let doctors = [];
+        try {
+            // Thêm code lấy danh sách bác sĩ theo chuyên khoa
+            doctors = await doctorService.getDoctorsBySpecialization(id);
+            console.log(`Found ${doctors.length} doctors for specialization ${id}`);
+        } catch (e) {
+            console.log('Error getting doctors by specialization:', e);
+            doctors = [];
+        }
+        
+        if (!specialization) {
+            console.log('No specialization found with ID:', id);
+            return res.render('main/404.ejs');
+        }
+        
+        // Render trang với dữ liệu đầy đủ, bao gồm danh sách bác sĩ
+        return res.render('main/homepage/specialization.ejs', {
+            specialization: specialization,
+            listSpecializations: listSpecializations || [],
+            doctors: doctors || []
+        });
+    } catch (e) {
+        console.log('Error in getSpecialization:', e);
+        return res.status(500).render('main/500.ejs', { error: e.message });
+    }
+};
+
 module.exports = {
     getHomePage: getHomePage,
     getUserPage: getUserPage,
@@ -478,4 +523,5 @@ module.exports = {
     getDetailHandbook: getDetailHandbook, //
     getHandbookWithPagination: getHandbookWithPagination, //
     getHandbookPaginationAPI: getHandbookPaginationAPI,//
+    getSpecialization: getSpecialization
 };
