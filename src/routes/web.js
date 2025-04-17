@@ -300,6 +300,24 @@ let initRoutes = (app) => {
     // Route mới cho trang chi tiết lịch
     router.get('/admin/schedule-detail', auth.checkLoggedIn, admin.getScheduleDetailPage);
 
+    // Thêm hoặc kiểm tra route sau
+    router.get('/users/manage/supporter/create', auth.checkLoggedIn, admin.getCreateSupporterPage);
+
+    // Thêm route cho API tạo tư vấn viên
+    router.post('/admin/create-supporter', auth.checkLoggedIn, admin.createSupporter);
+
+    // Các routes cho quản lý lịch khám
+    router.get('/users/admin/manage-schedule-for-doctors', auth.checkLoggedIn, admin.getManageCreateScheduleForDoctorsPage);
+    router.get('/admin/schedule-detail', auth.checkLoggedIn, admin.getScheduleDetailPage);
+
+    // Các routes cho quản lý tư vấn viên
+    router.get('/users/manage/supporter', auth.checkLoggedIn, admin.getSupporterPage);
+    router.get('/users/manage/supporter/create', auth.checkLoggedIn, admin.getCreateSupporterPage);
+    router.get('/users/supporter/edit/:id', auth.checkLoggedIn, admin.getEditSupporterPage);
+
+    // Route POST để tạo tư vấn viên
+    router.post('/admin/create-supporter', auth.checkLoggedIn, admin.createSupporter);
+
     return app.use("/", router);
 };
 module.exports = initRoutes;
