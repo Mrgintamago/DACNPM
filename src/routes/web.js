@@ -318,6 +318,28 @@ let initRoutes = (app) => {
     // Route POST để tạo tư vấn viên
     router.post('/admin/create-supporter', auth.checkLoggedIn, admin.createSupporter);
 
+    // Route cho trang tạo mới chuyên khoa
+    router.get('/admin/manage/specialization/create', auth.checkLoggedIn, admin.getCreateSpecializationPage);
+
+    // Route xử lý POST request khi submit form tạo chuyên khoa
+    router.post('/admin/create-specialization', auth.checkLoggedIn, (req, res, next) => {
+        uploadSpecializationImage(req, res, (err) => {
+            if (err) {
+                return res.status(500).json({
+                    errCode: 3,
+                    errMessage: `Lỗi upload file: ${err.message}`
+                });
+            }
+            
+            // Thêm đường dẫn file vào req.body nếu có file upload
+            if (req.file) {
+                req.body.image = req.file.filename;
+            }
+            
+            next();
+        });
+    }, admin.postCreateSpecialization);
+
     return app.use("/", router);
 };
 module.exports = initRoutes;
