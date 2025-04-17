@@ -17,14 +17,19 @@ body a {
 }
 
 .login .lg-body .lg-image-background {
-  background-image: url("../images/header-cover1.jpg");
+  background-image: url(../images/header-cover1.jpg);
   background-position: center center;
   background-repeat: no-repeat;
-  background-size: cover;
+  background-size: contain;
+  /* thay đổi từ cover sang contain */
+  background-color: #ffffff;
+  /* tùy chọn, nền trắng nếu ảnh không che hết */
   box-shadow: 0 0 5px 3px rgba(0, 0, 0, 0.05);
-  opacity: 0.9;
-  height: 600px;
+  opacity: 0.95;
+  height: 500px;
   border-radius: 3px;
+  overflow: hidden;
+  /* đảm bảo không bị tràn */
 }
 
 .login .lg-body .lg-image-background:hover {

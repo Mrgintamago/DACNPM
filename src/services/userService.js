@@ -91,7 +91,7 @@ let findUserById = (id) => {
         try {
             let user = await db.User.findOne({
                 where: { id: id },
-                attributes: [ 'id', 'name', 'avatar', 'roleId', 'isActive' ]
+                attributes: ['id', 'name', 'avatar', 'roleId', 'isActive']
             });
             resolve(user);
         } catch (e) {
@@ -116,54 +116,59 @@ function stringToDate(_date, _format, _delimiter) {
 let getInfoStatistical = (month) => {
     return new Promise(async (resolve, reject) => {
         try {
-            let startDate = Date.parse(stringToDate(`01/${month}/2020`, "dd/MM/yyyy", "/"));
-            let endDate = Date.parse(stringToDate(`31/${month}/2020`, "dd/MM/yyyy", "/"));
+            // Bo sung 
+            let currentYear = new Date().getFullYear();
+            let startDate = Date.parse(stringToDate(`01/${month}/${currentYear}`, "dd/MM/yyyy", "/"));
+            let endDate = Date.parse(stringToDate(`31/${month}/${currentYear}`, "dd/MM/yyyy", "/"));
+
+            //let startDate = Date.parse(stringToDate(`01/${month}/2020`, "dd/MM/yyyy", "/"));
+            //let endDate = Date.parse(stringToDate(`31/${month}/2020`, "dd/MM/yyyy", "/"));
 
             let patients = await db.Patient.findAndCountAll({
-                attributes: [ 'id','doctorId' ],
+                attributes: ['id', 'doctorId'],
                 where: {
                     createdAt: {
-                        [Op.between]: [ startDate, endDate ],
+                        [Op.between]: [startDate, endDate],
                     },
                 }
             });
 
             let doctors = await db.User.findAndCountAll({
-                attributes: [ 'id' ],
+                attributes: ['id'],
                 where: {
                     roleId: 2,
                     createdAt: {
-                        [Op.between]: [ startDate, endDate ],
+                        [Op.between]: [startDate, endDate],
                     }
                 }
             });
 
             let posts = await db.Post.findAndCountAll({
-                attributes: [ 'id','writerId' ],
+                attributes: ['id', 'writerId'],
                 where: {
                     forClinicId: -1,
                     forSpecializationId: -1,
                     forDoctorId: -1,
                     createdAt: {
-                        [Op.between]: [ startDate, endDate ],
+                        [Op.between]: [startDate, endDate],
                     }
                 }
             });
 
             let bestDoctor = '';
 
-            if(+patients.count > 0){
+            if (+patients.count > 0) {
                 let bestDoctorIdArr = _(patients.rows)
-                .groupBy('doctorId')
-                .map((v, doctorId) => ({
-                    doctorId,
-                    patientId: _.map(v, 'id')
-                }))
-                .value();
-                let doctorObject = _.maxBy(bestDoctorIdArr, function(o) {
+                    .groupBy('doctorId')
+                    .map((v, doctorId) => ({
+                        doctorId,
+                        patientId: _.map(v, 'id')
+                    }))
+                    .value();
+                let doctorObject = _.maxBy(bestDoctorIdArr, function (o) {
                     return o.patientId.length;
                 });
-                 bestDoctor = await db.User.findOne({
+                bestDoctor = await db.User.findOne({
                     where: {
                         id: doctorObject.doctorId
                     },
@@ -173,18 +178,18 @@ let getInfoStatistical = (month) => {
             }
 
             let bestSupporter = '';
-            if(+posts.count > 0){
+            if (+posts.count > 0) {
                 let bestSupporterIdArr = _(posts.rows)
-                .groupBy('writerId')
-                .map((v, writerId) => ({
-                    writerId,
-                    postId: _.map(v, 'id')
-                }))
-                .value();
-                let supporterObject = _.maxBy(bestSupporterIdArr, function(o) {
+                    .groupBy('writerId')
+                    .map((v, writerId) => ({
+                        writerId,
+                        postId: _.map(v, 'id')
+                    }))
+                    .value();
+                let supporterObject = _.maxBy(bestSupporterIdArr, function (o) {
                     return o.postId.length;
                 });
-                 bestSupporter = await db.User.findOne({
+                bestSupporter = await db.User.findOne({
                     where: {
                         id: supporterObject.writerId
                     },
@@ -208,19 +213,23 @@ let getInfoStatistical = (month) => {
 
 let getInfoDoctorChart = (month) => {
     return new Promise(async (resolve, reject) => {
-        try{
-            let startDate = Date.parse(stringToDate(`01/${month}/2020`, "dd/MM/yyyy", "/"));
-            let endDate = Date.parse(stringToDate(`31/${month}/2020`, "dd/MM/yyyy", "/"));
+        try {
+            // Bo sung
+            let currentYear = new Date().getFullYear();
+            let startDate = Date.parse(stringToDate(`01/${month}/${currentYear}`, "dd/MM/yyyy", "/"));
+            let endDate = Date.parse(stringToDate(`31/${month}/${currentYear}`, "dd/MM/yyyy", "/"));
+            //let startDate = Date.parse(stringToDate(`01/${month}/2020`, "dd/MM/yyyy", "/"));
+            //let endDate = Date.parse(stringToDate(`31/${month}/2020`, "dd/MM/yyyy", "/"));
             let patients = await db.Patient.findAndCountAll({
-                attributes: [ 'id','doctorId','statusId','isSentForms' ],
+                attributes: ['id', 'doctorId', 'statusId', 'isSentForms'],
                 where: {
                     createdAt: {
-                        [Op.between]: [ startDate, endDate ],
+                        [Op.between]: [startDate, endDate],
                     },
                 }
             });
-            resolve({patients: patients})
-        }catch (e) {
+            resolve({ patients: patients })
+        } catch (e) {
             reject(e);
         }
     });
@@ -258,9 +267,9 @@ let createAllDoctorsSchedule = () => {
                 }
             })
 
-            if(check && check.length > 0) isCreatedBefore = true;
+            if (check && check.length > 0) isCreatedBefore = true;
 
-            if(!isCreatedBefore){
+            if (!isCreatedBefore) {
                 if (doctors && doctors.length > 0) {
                     await Promise.all(
                         doctors.map((doctor) => {
@@ -280,7 +289,7 @@ let createAllDoctorsSchedule = () => {
                     )
                 }
                 resolve("Appointments are created successful (in 3 days). Please check your database (schedule table)")
-            }else {
+            } else {
                 resolve("Appointments are duplicated. Please check your database (schedule table)")
             }
         } catch (e) {
@@ -315,7 +324,7 @@ let getAllDoctors = () => {
                     exclude: ['password']
                 }
             });
-            
+
             resolve({
                 errCode: 0,
                 data: doctors
