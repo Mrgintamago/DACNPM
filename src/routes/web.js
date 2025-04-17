@@ -103,7 +103,7 @@ let initRoutes = (app) => {
 
     router.get('/', home.getHomePage);
     router.get('/contact', home.getContactPage);
-    router.get('/detail/specialization/:id', home.getDetailSpecializationPage);
+
     router.get('/detail/doctor/:id', home.getDetailDoctorPage);
 
     router.post('/booking-doctor-without-files/create', home.postBookingDoctorPageWithoutFiles);
@@ -281,6 +281,9 @@ let initRoutes = (app) => {
     router.put('/admin/supporter/update', auth.checkLoggedIn, admin.putUpdateSupporter);
     router.post('/admin/get-supporter-by-id', auth.checkLoggedIn, admin.getSupporterById);
     router.delete('/admin/delete-supporter', auth.checkLoggedIn, admin.deleteSupporter);
+
+    // Route cho trang chi tiết chuyên khoa
+    router.get('/detail/specialization/:id', home.getSpecialization);
 
     return app.use("/", router);
 };

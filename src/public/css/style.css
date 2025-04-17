@@ -841,3 +841,10 @@ a.mt-5.pd-3.contact-facebook.text-decoration-none {
   padding: 8px;
   color: blue;
 }
+
+/* Thêm CSS để ẩn phần tiêu đề đó */
+.specialty-sidebar-title, 
+.sidebar-specialty-name,
+.right-sidebar h2:first-child {
+    display: none !important;
+}

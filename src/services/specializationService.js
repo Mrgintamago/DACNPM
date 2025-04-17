@@ -3,21 +3,30 @@ import db from "./../models";
 let getSpecializationById = (id) => {
     return new Promise(async (resolve, reject) => {
         try {
+            if (!id) {
+                reject(new Error('Missing specialization ID'));
+                return;
+            }
+            
+            // Đảm bảo biến này được khởi tạo trước khi sử dụng
             let specialization = await db.Specialization.findOne({
                 where: { id: id },
                 raw: true // Lấy dữ liệu dạng plain object
             });
             
+            // Kiểm tra và log ra kết quả để debug
+            console.log("Query result:", specialization);
+            
             if (!specialization) {
-                reject(`Không tìm thấy chuyên khoa với id = ${id}`);
+                console.log(`No specialization found with id = ${id}`);
+                resolve(null);
                 return;
             }
             
-            // Bỏ đoạn code liên quan đến Places
-            // KHÔNG gọi Places.findAll() ở đây nữa
-            
+            // Chỉ trả về thông tin chuyên khoa, không bao gồm places
             resolve(specialization);
         } catch (e) {
+            console.log("Error in getSpecializationById:", e);
             reject(e);
         }
     });
@@ -26,14 +35,15 @@ let getSpecializationById = (id) => {
 let getAllSpecializations = () => {
     return new Promise(async (resolve, reject) => {
         try {
-            let listSpecializations = await db.Specialization.findAll({
-                attributes: [ 'id', 'name' ],
-                order: [
-                    [ 'name', 'ASC' ]
-                ],
+            let specializations = await db.Specialization.findAll({
+                raw: true,
+                nest: true
             });
-            resolve(listSpecializations);
+            
+            // Đảm bảo luôn trả về mảng, ngay cả khi không có dữ liệu
+            resolve(specializations || []);
         } catch (e) {
+            console.log('Error in getAllSpecializations:', e);
             reject(e);
         }
     });
