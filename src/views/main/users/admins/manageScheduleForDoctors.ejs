@@ -5,25 +5,106 @@
             class="fas fa-plus-circle fa-sm text-white-50"></i> Tạo lịch cho tất cả bác sĩ</button>
 </div>
 
-<div class="card shadow mb-4">
-    <div class="card-header py-3">
-        <h6 class="m-0 font-weight-bold text-primary">Danh sách lịch khám</h6>
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-bordered display " id="listSpecializations" width="100%" cellspacing="0">
-                <thead>
-                    <tr>
-                        <th>doctorId</th>
-                        <th>Ngày</th>
-                        <th>Giờ</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
+<div class="container-fluid">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Bộ lọc</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="doctorId">Bác sĩ</label>
+                        <select id="doctorId" class="form-control">
+                            <option value="">Tất cả bác sĩ</option>
+                            <!-- Các option sẽ được thêm từ JS -->
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="dateSearch">Ngày</label>
+                        <input type="text" id="dateSearch" class="form-control" placeholder="DD/MM/YYYY">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label>&nbsp;</label>
+                        <button id="btnSearch" class="btn btn-primary d-block">Tìm kiếm</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+    
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Danh sách lịch khám</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="scheduleTable" class="table table-bordered display" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>Bác sĩ</th>
+                            <th>Ngày</th>
+                            <th>Giờ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Dữ liệu sẽ được thêm vào đây qua JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Xóa bảng thứ hai ("listSpecializations") vì trùng lặp -->
+
+<!-- Kiểm tra cấu trúc của modal xác nhận -->
+<div class="modal fade" id="confirmModal" tabindex="-1" role="dialog" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="confirmModalLabel">Xác nhận tạo lịch</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Hành động này sẽ tạo lịch khám cho tất cả bác sĩ trong 3 ngày tới. Tiếp tục?
+            </div>
+            <div class="modal-footer">
+                <div id="processLoading" class="process-loading d-none">
+                    <div class="d-flex align-items-center">
+                        <span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span>
+                        <span>Đang xử lý...</span>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="ok-btn">OK</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Loading -->
+<div class="modal fade" id="loadingModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-body text-center py-4">
+        <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;" role="status">
+          <span class="sr-only">Đang xử lý...</span>
+        </div>
+        <h5 class="mb-3">Đang tạo lịch khám cho tất cả bác sĩ</h5>
+        <p class="text-muted mb-0">Vui lòng đợi trong giây lát, quá trình này có thể mất một chút thời gian.</p>
+        <div class="progress mt-3" style="height: 6px;">
+          <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style="width: 100%"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -31,22 +112,140 @@
         $("div #collapseUtilities").addClass('show');
         $("div #collapseUtilities").find($("#aManageCreateScheduleDoctors")).addClass("active");
         $(".supporter-list-posts").removeClass("active");
+        
+        // Load danh sách bác sĩ cho dropdown
+        loadDoctorsList();
+        
+        // Load danh sách lịch khám
+        loadSchedulesList();
+        
+        // Xử lý click vào nút "Tạo lịch cho tất cả bác sĩ"
+        $('#addScheduleAllDoctors').on('click', function() {
+            // Hiển thị modal xác nhận
+            $('#confirmModal').modal('show');
+        });
+        
+        // Xử lý tìm kiếm
+        $('#btnSearch').on('click', function() {
+            loadSchedulesList();
+        });
 
-        $('#addScheduleAllDoctors').on('click', function(event) {
-            if (!confirm('Hành động này sẽ tạo lịch khám cho tất cả bác sĩ trong 3 ngày tới. Tiếp tục?')) {
-                return;
-            }
+        // Xử lý nút OK trong modal xác nhận
+        $('#ok-btn').on('click', function() {
+            // Đóng modal xác nhận
+            $('#confirmModal').modal('hide');
+            
+            // Hiển thị modal loading
+            $('#loadingModal').modal('show');
+            
+            console.log("Sending request to create schedules");
+            
+            // Gọi API tạo lịch - Sửa URL để trỏ đến đúng API endpoint
             $.ajax({
                 method: "POST",
-                url: `${window.location.origin}/doctor/auto-create-all-doctors-schedule`,
-                success: function(data) {
-                    alert(data);
+                url: "/api/bulk-create-schedule",
+                timeout: 60000,
+                success: function(response) {
+                    // Ẩn modal loading
+                    $('#loadingModal').modal('hide');
+                    
+                    if (response.errCode === 0) {
+                        const { successCount, doctorCount } = response.data || { successCount: 0, doctorCount: 0 };
+                        
+                        alertify.success(`Đã tạo ${successCount} lịch khám thành công cho ${doctorCount} bác sĩ`);
+                        
+                        // Reload danh sách lịch sau khi tạo
+                        setTimeout(function() {
+                            loadSchedulesList();
+                        }, 1000);
+                    } else {
+                        alertify.error(response.errMessage || "Đã xảy ra lỗi khi tạo lịch khám");
+                    }
                 },
-                error: function(error) {
-                    alert(error)
-                    console.log(error)
+                error: function(xhr, status, error) {
+                    // Ẩn modal loading
+                    $('#loadingModal').modal('hide');
+                    
+                    alertify.error("Lỗi: " + (xhr.responseJSON?.errMessage || error));
+                    console.error("Error details:", xhr.responseText);
                 }
             });
         });
     });
+    
+    // Hàm load danh sách bác sĩ
+    function loadDoctorsList() {
+        $.ajax({
+            url: "/api/get-all-doctors",
+            method: "GET",
+            success: function(response) {
+                if (response.errCode === 0) {
+                    let options = '<option value="">Tất cả bác sĩ</option>';
+                    response.data.forEach(function(doctor) {
+                        // Sử dụng trường name thay vì firstName và lastName
+                        options += `<option value="${doctor.id}">${doctor.name}</option>`;
+                    });
+                    $('#doctorId').html(options);
+                }
+            },
+            error: function(xhr) {
+                console.error("Error loading doctors:", xhr.responseText);
+            }
+        });
+    }
+    
+    // Hàm load danh sách lịch khám
+    function loadSchedulesList() {
+        const doctorId = $('#doctorId').val();
+        const date = $('#dateSearch').val();
+        
+        // Hiển thị loading
+        $('#scheduleTable tbody').html('<tr><td colspan="3" class="text-center">Đang tải dữ liệu...</td></tr>');
+        
+        $.ajax({
+            url: "/api/get-schedules",
+            method: "GET",
+            data: {
+                doctorId: doctorId,
+                date: date
+            },
+            success: function(response) {
+                if (response.errCode === 0) {
+                    displaySchedules(response.data);
+                } else {
+                    $('#scheduleTable tbody').html('<tr><td colspan="3" class="text-center text-danger">Lỗi: ' + response.errMessage + '</td></tr>');
+                }
+            },
+            error: function(xhr) {
+                $('#scheduleTable tbody').html('<tr><td colspan="3" class="text-center text-danger">Lỗi khi tải dữ liệu</td></tr>');
+                console.error("Error:", xhr.responseText);
+            }
+        });
+    }
+    
+    // Hàm hiển thị dữ liệu lịch khám vào bảng
+    function displaySchedules(schedules) {
+        $('#scheduleTable tbody').empty();
+        
+        if (schedules && schedules.length > 0) {
+            schedules.forEach(function(schedule) {
+                // Lấy tên bác sĩ từ doctorData hoặc hiển thị ID nếu không có
+                const doctorName = schedule.doctorData ? 
+                    schedule.doctorData.name || `Bác sĩ ID: ${schedule.doctorId}` : 
+                    `Bác sĩ ID: ${schedule.doctorId}`;
+                    
+                const row = `
+                    <tr>
+                        <td>${doctorName}</td>
+                        <td>${schedule.date}</td>
+                        <td>${schedule.time}</td>
+                    </tr>
+                `;
+                
+                $('#scheduleTable tbody').append(row);
+            });
+        } else {
+            $('#scheduleTable tbody').html('<tr><td colspan="3" class="text-center">Không có lịch khám nào</td></tr>');
+        }
+    }
 </script>
