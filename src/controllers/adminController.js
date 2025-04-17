@@ -1106,6 +1106,53 @@ let createSupporter = async (req, res) => {
     }
 };
 
+// Thêm các hàm controller mới
+
+let getCreateSpecializationPage = async (req, res) => {
+    try {
+        return res.render("main/users/admins/createSpecialization.ejs", {
+            user: req.user,
+            errors: req.flash("errors"),
+            success: req.flash("success")
+        });
+    } catch (e) {
+        console.error("Error in getCreateSpecializationPage:", e);
+        return res.redirect("/users/manage/specialization");
+    }
+};
+
+let postCreateSpecialization = async (req, res) => {
+    try {
+        let data = {
+            name: req.body.name,
+            description: req.body.description,
+            descriptionHTML: req.body.descriptionHTML,
+            image: req.file ? req.file.filename : ''
+        };
+
+        // Validate dữ liệu
+        if (!data.name) {
+            req.flash('errors', 'Vui lòng nhập tên chuyên khoa');
+            return res.redirect('/admin/manage/specialization/create');
+        }
+
+        // Gọi service để tạo chuyên khoa mới
+        let specialization = await specializationService.createSpecialization(data);
+        
+        if (specialization) {
+            req.flash('success', 'Tạo chuyên khoa mới thành công');
+            return res.redirect('/users/manage/specialization');
+        } else {
+            req.flash('errors', 'Tạo chuyên khoa thất bại');
+            return res.redirect('/admin/manage/specialization/create');
+        }
+    } catch (e) {
+        console.error("Error in postCreateSpecialization:", e);
+        req.flash('errors', `Lỗi server: ${e.message}`);
+        return res.redirect('/admin/manage/specialization/create');
+    }
+};
+
 module.exports = {
     getManageDoctor: getManageDoctor,
     getCreateDoctor: getCreateDoctor,
@@ -1152,4 +1199,7 @@ module.exports = {
 
     getCreateSupporterPage: getCreateSupporterPage,
     createSupporter: createSupporter,
+
+    getCreateSpecializationPage: getCreateSpecializationPage,
+    postCreateSpecialization: postCreateSpecialization,
 };

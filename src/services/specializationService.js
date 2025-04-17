@@ -110,9 +110,36 @@ let updateSpecialization = (data) => {
     });
 };
 
+// Thêm hàm createSpecialization nếu chưa có
+
+let createSpecialization = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            if (!data.name) {
+                resolve({
+                    errCode: 1,
+                    errMessage: 'Thiếu thông tin bắt buộc'
+                });
+            } else {
+                const specialization = await db.Specialization.create({
+                    name: data.name,
+                    description: data.description || null,
+                    descriptionHTML: data.descriptionHTML || null,
+                    image: data.image || null
+                });
+                
+                resolve(specialization);
+            }
+        } catch (e) {
+            reject(e);
+        }
+    });
+};
+
 module.exports = {
     getSpecializationById: getSpecializationById,
     getAllSpecializations: getAllSpecializations,
     deleteSpecializationById: deleteSpecializationById,
-    updateSpecialization: updateSpecialization
+    updateSpecialization: updateSpecialization,
+    createSpecialization: createSpecialization
 };
