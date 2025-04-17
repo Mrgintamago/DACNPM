@@ -383,13 +383,63 @@ let putUpdatePost = async (req, res) => {
 
 let getManageCreateScheduleForDoctorsPage = async (req, res) => {
     try {
+        // Tạo 3 ngày cần hiển thị (giống như trong schedule.ejs)
+        let threeDaySchedules = [];
+        for (let i = 0; i < 3; i++) {
+            let date = new Date();
+            date.setDate(date.getDate() + i);
+            let day = date.getDate();
+            day = day < 10 ? '0' + day : day;
+            let month = date.getMonth() + 1;
+            month = month < 10 ? '0' + month : month;
+            let strDate = `${day}/${month}/${date.getFullYear()}`;
+            threeDaySchedules.push(strDate);
+        }
+
+        // Lấy dữ liệu lịch cho 3 ngày
+        let schedules = await db.sequelize.query(
+            `SELECT s.*, u.name as doctorName 
+             FROM Schedules s 
+             LEFT JOIN Users u ON s.doctorId = u.id 
+             WHERE s.date IN (:date1, :date2, :date3)`,
+            {
+                replacements: { 
+                    date1: threeDaySchedules[0],
+                    date2: threeDaySchedules[1], 
+                    date3: threeDaySchedules[2] 
+                },
+                type: db.sequelize.QueryTypes.SELECT,
+                raw: true
+            }
+        );
+        
+        // Lấy danh sách bác sĩ để hiển thị dropdown
+        let doctors = await db.sequelize.query(
+            `SELECT id, name, email 
+             FROM Users 
+             WHERE roleId = 2 
+             AND deletedAt IS NULL 
+             AND isActive = 1`,
+            {
+                type: db.sequelize.QueryTypes.SELECT,
+                raw: true
+            }
+        );
+
         return res.render('main/users/admins/manageScheduleForDoctors.ejs', {
             user: req.user,
-        })
+            schedules: schedules,
+            threeDaySchedules: threeDaySchedules,
+            doctors: doctors
+        });
+        
     } catch (e) {
-        console.log(e);
+        console.error("Error in getManageCreateScheduleForDoctorsPage:", e);
+        return res.render('main/users/error.ejs', {
+            user: req.user,
+            error: e.message
+        });
     }
-
 };
 
 let getInfoStatistical = async (req, res) => {
@@ -918,6 +968,78 @@ let getAllDoctors = async (req, res) => {
     }
 };
 
+// Thêm hàm để lấy lịch theo nhiều ngày
+let getSchedulesByDays = async (req, res) => {
+    try {
+        const { dates } = req.query;
+        let dateList = [];
+        
+        if (dates && Array.isArray(JSON.parse(dates))) {
+            dateList = JSON.parse(dates);
+        } else {
+            // Mặc định là 3 ngày
+            for (let i = 0; i < 3; i++) {
+                let date = new Date();
+                date.setDate(date.getDate() + i);
+                let day = date.getDate();
+                day = day < 10 ? '0' + day : day;
+                let month = date.getMonth() + 1;
+                month = month < 10 ? '0' + month : month;
+                let strDate = `${day}/${month}/${date.getFullYear()}`;
+                dateList.push(strDate);
+            }
+        }
+        
+        // Query lấy lịch
+        const schedules = await db.sequelize.query(
+            `SELECT s.*, u.name as doctorName 
+             FROM Schedules s 
+             LEFT JOIN Users u ON s.doctorId = u.id 
+             WHERE s.date IN (:...dates)`,
+            {
+                replacements: { dates: dateList },
+                type: db.sequelize.QueryTypes.SELECT,
+                raw: true
+            }
+        );
+        
+        return res.status(200).json({
+            errCode: 0,
+            errMessage: 'OK',
+            data: schedules,
+            dates: dateList
+        });
+    } catch (e) {
+        console.error("Error in getSchedulesByDays:", e);
+        return res.status(500).json({
+            errCode: -1,
+            errMessage: 'Lỗi server: ' + e.message
+        });
+    }
+};
+
+// Controller cho trang chi tiết lịch
+let getScheduleDetailPage = async (req, res) => {
+    try {
+        const date = req.query.date;
+        
+        if (!date) {
+            return res.redirect('/users/admin/manage-schedule');
+        }
+        
+        return res.render('main/users/admins/scheduleDetail.ejs', {
+            user: req.user,
+            date: date
+        });
+    } catch (e) {
+        console.error("Error in getScheduleDetailPage:", e);
+        return res.render('main/users/error.ejs', {
+            user: req.user,
+            error: e.message
+        });
+    }
+};
+
 module.exports = {
     getManageDoctor: getManageDoctor,
     getCreateDoctor: getCreateDoctor,
@@ -958,5 +1080,7 @@ module.exports = {
 
     handleBulkCreateSchedule: handleBulkCreateSchedule,
     getSchedulesList: getSchedulesList,
-    getAllDoctors: getAllDoctors
+    getAllDoctors: getAllDoctors,
+    getSchedulesByDays: getSchedulesByDays,
+    getScheduleDetailPage: getScheduleDetailPage,
 };

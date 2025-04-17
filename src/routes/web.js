@@ -294,6 +294,12 @@ let initRoutes = (app) => {
     // API để lấy tất cả bác sĩ
     router.get('/api/get-all-doctors', admin.getAllDoctors);
 
+    // API lấy lịch theo nhiều ngày
+    router.get('/api/get-schedules-by-days', admin.getSchedulesByDays);
+
+    // Route mới cho trang chi tiết lịch
+    router.get('/admin/schedule-detail', auth.checkLoggedIn, admin.getScheduleDetailPage);
+
     return app.use("/", router);
 };
 module.exports = initRoutes;
