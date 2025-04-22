@@ -101,13 +101,14 @@ let getAllSupporters = () => {
     });
 };
 
-let getPostsPagination = (page, limit, role) => {
+// Post
+let getPostPagination = (page, limit, role) => {
     return new Promise(async (resolve, reject) => {
         try {
             let posts = "";
             //only get bài đăng y khoa
             if (role === "admin") {
-                posts = await db.Handbook.findAndCountAll({
+                posts = await db.Post.findAndCountAll({
                     offset: (page - 1) * limit,
                     limit: limit,
                     attributes: ['id', 'title', 'contentMarkdown', 'contentHTML', 'createdAt', 'writerId'],
@@ -116,7 +117,7 @@ let getPostsPagination = (page, limit, role) => {
                     ],
                 });
             } else {
-                posts = await db.Handbook.findAndCountAll({
+                posts = await db.Post.findAndCountAll({
                     // where: {
                     //     forDoctorId: -1,
                     //     forSpecializationId: -1,
@@ -150,14 +151,14 @@ let getPostsPagination = (page, limit, role) => {
         }
     });
 };
-// Post
-let getPostPagination = (page, limit, role) => {
+
+let getPostsPagination = (page, limit, role) => {
     return new Promise(async (resolve, reject) => {
         try {
             let posts = "";
             //only get bài đăng y khoa
             if (role === "admin") {
-                posts = await db.Post.findAndCountAll({
+                posts = await db.Handbook.findAndCountAll({
                     offset: (page - 1) * limit,
                     limit: limit,
                     attributes: ['id', 'title', 'contentMarkdown', 'contentHTML', 'createdAt', 'writerId'],
@@ -166,7 +167,7 @@ let getPostPagination = (page, limit, role) => {
                     ],
                 });
             } else {
-                posts = await db.Post.findAndCountAll({
+                posts = await db.Handbook.findAndCountAll({
                     // where: {
                     //     forDoctorId: -1,
                     //     forSpecializationId: -1,
