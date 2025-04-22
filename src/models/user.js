@@ -15,7 +15,7 @@ module.exports = (sequelize, DataTypes) => {
         updatedAt: DataTypes.DATE,
         deletedAt: DataTypes.DATE,
     }, {});
-    User.associate = function(models) {
+    User.associate = function (models) {
         models.User.belongsTo(models.Role, { foreignKey: 'roleId' });
         models.User.hasOne(models.Post);
         models.User.hasOne(models.Doctor_User, { foreignKey: 'doctorId' });

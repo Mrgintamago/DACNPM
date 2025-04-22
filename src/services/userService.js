@@ -146,9 +146,10 @@ let getInfoStatistical = (month) => {
             let posts = await db.Post.findAndCountAll({
                 attributes: ['id', 'writerId'],
                 where: {
-                    forClinicId: -1,
-                    forSpecializationId: -1,
-                    forDoctorId: -1,
+                    // Thay doi
+                    // forClinicId: -1,
+                    // forSpecializationId: -1,
+                    // forDoctorId: -1,
                     createdAt: {
                         [Op.between]: [startDate, endDate],
                     }

@@ -8,7 +8,7 @@ module.exports = (sequelize, DataTypes) => {
         updatedAt: DataTypes.DATE,
         deletedAt: DataTypes.DATE
     }, {});
-    Doctor_User.associate = function(models) {
+    Doctor_User.associate = function (models) {
         models.Doctor_User.belongsTo(models.User, { foreignKey: 'doctorId' });
     };
     return Doctor_User;
