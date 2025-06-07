@@ -43,7 +43,7 @@ function getScheduleDoctorByDate() {
                         moreInfo = `
                          <div class="d-flex flex-column">
                                     <div>
-                                                <span class="d-block mt-2">Choose <i class="fa fa-hand-o-up" aria-hidden="true"></i>  and book a free consultation</span>
+                                                <span class="d-block mt-2">Chọn <i class="fa fa-hand-o-up" aria-hidden="true"></i>  and và đặt lịch tư vấn miễn phí</span>
                                     </div>
                                     <div style="border-top: 1px solid #ccc"
                                          class="d-flex flex-column">
@@ -52,7 +52,7 @@ function getScheduleDoctorByDate() {
                                         <span class="d-block pb-1"
                                               style="border-bottom: 1px solid #ccc">${data.doctor.address}</span>
                                     </div>
-                                    <span class="d-block pt-2">Price: 50 USD</span>
+                                    <span class="d-block pt-2">Giá: 100.000đ</span>
                                 </div>
                         
                         `;
@@ -120,13 +120,13 @@ function specializationGetScheduleDoctorByDate() {
                     moreInfo = `
                         <div class="d-flex flex-column">
                                             <div>
-                                                <span class="d-block mt-2"> Choose <i class="fa fa-hand-o-up" aria-hidden="true"></i>  and book a free consultation</span>
+                                                <span class="d-block mt-2"> Chọn <i class="fa fa-hand-o-up" aria-hidden="true"></i>  và đặt lịch tư vấn miễn phí</span>
                                             </div>
                                             <div style="border-top: 1px solid #ccc" class="d-flex flex-column">
                                                 <span class="d-block pt-3 pb-1" style="text-transform: uppercase">Address:</span>
                                                 <span class="d-block pb-1" style="border-bottom: 1px solid #ccc">${data.doctor.address}</span>
                                             </div>
-                                            <span class="d-block pt-2">Price: 50 USD</span>
+                                            <span class="d-block pt-2">Giá: 100.000đ</span>
                          </div>
                     `;
                 } else {
@@ -602,10 +602,10 @@ function handleSubmitFeedback() {
             url: `${window.location.origin}/feedback/create`,
             data: { data: data },
             success: function (data) {
-                alert("Sending a Feedback succeeds!")
+                alert("Gửi phản hồi thành công!")
             },
             error: function (err) {
-                alertify.error('An error occurs, please try again later!');
+                alertify.error('Xảy ra lỗi. Vui lòng thử lại sau!');
                 console.log(error);
             }
         })

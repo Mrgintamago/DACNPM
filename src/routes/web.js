@@ -185,6 +185,7 @@ let initRoutes = (app) => {
     router.delete('/admin/delete/doctor', auth.checkLoggedIn, admin.deleteDoctorById);
     router.delete('/admin/delete/specialization', auth.checkLoggedIn, admin.deleteSpecializationById);
     router.delete('/admin/delete/post', auth.checkLoggedIn, admin.deletePostById);
+    router.delete('/admin/delete/comment', auth.checkLoggedIn, admin.deleteCommentById);
 
     router.get("/login", auth.checkLoggedOut, auth.getLogin);
 
@@ -256,15 +257,15 @@ let initRoutes = (app) => {
                     errMessage: `Lỗi upload file: ${err.message}`
                 });
             }
-            
+
             // Thêm đường dẫn file vào req.body nếu có file upload
             if (req.file) {
                 req.body.image = req.file.filename;
             }
-            
+
             // Log dữ liệu sau khi xử lý file
             console.log("Request body after upload:", req.body);
-            
+
             next();
         });
     }, admin.putUpdateSpecialization);
@@ -330,12 +331,12 @@ let initRoutes = (app) => {
                     errMessage: `Lỗi upload file: ${err.message}`
                 });
             }
-            
+
             // Thêm đường dẫn file vào req.body nếu có file upload
             if (req.file) {
                 req.body.image = req.file.filename;
             }
-            
+
             next();
         });
     }, admin.postCreateSpecialization);

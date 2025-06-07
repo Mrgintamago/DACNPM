@@ -102,63 +102,13 @@ let getAllSupporters = () => {
 };
 
 // Post
-let getPostPagination = (page, limit, role) => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            let posts = "";
-            //only get bài đăng y khoa
-            if (role === "admin") {
-                posts = await db.Post.findAndCountAll({
-                    offset: (page - 1) * limit,
-                    limit: limit,
-                    attributes: ['id', 'title', 'contentMarkdown', 'contentHTML', 'createdAt', 'writerId'],
-                    order: [
-                        ['createdAt', 'DESC']
-                    ],
-                });
-            } else {
-                posts = await db.Post.findAndCountAll({
-                    // where: {
-                    //     forDoctorId: -1,
-                    //     forSpecializationId: -1,
-                    //     forClinicId: -1
-                    // },
-                    offset: (page - 1) * limit,
-                    limit: limit,
-                    attributes: ['id', 'title', 'contentMarkdown', 'contentHTML', 'createdAt', 'writerId'],
-                    order: [
-                        ['createdAt', 'DESC']
-                    ],
-                });
-            }
-
-            let total = Math.ceil(posts.count / limit);
-
-            await Promise.all(posts.rows.map(async (post) => {
-                let supporter = await helper.getSupporterById(post.writerId);
-                let dateClient = helper.convertDateClient(post.createdAt);
-                post.setDataValue('writerName', supporter.name);
-                post.setDataValue('dateClient', dateClient);
-                return post;
-            }));
-
-            resolve({
-                posts: posts,
-                total: total
-            });
-        } catch (e) {
-            reject(e);
-        }
-    });
-};
-
 let getPostsPagination = (page, limit, role) => {
     return new Promise(async (resolve, reject) => {
         try {
             let posts = "";
             //only get bài đăng y khoa
             if (role === "admin") {
-                posts = await db.Handbook.findAndCountAll({
+                posts = await db.Post.findAndCountAll({
                     offset: (page - 1) * limit,
                     limit: limit,
                     attributes: ['id', 'title', 'contentMarkdown', 'contentHTML', 'createdAt', 'writerId'],
@@ -167,7 +117,7 @@ let getPostsPagination = (page, limit, role) => {
                     ],
                 });
             } else {
-                posts = await db.Handbook.findAndCountAll({
+                posts = await db.Post.findAndCountAll({
                     // where: {
                     //     forDoctorId: -1,
                     //     forSpecializationId: -1,
@@ -201,6 +151,7 @@ let getPostsPagination = (page, limit, role) => {
         }
     });
 };
+
 
 // Hanbook
 let getHandbookPagination = (page, limit, role) => {
@@ -269,6 +220,27 @@ let deletePostById = (id) => {
     });
 };
 
+// Ham xoa Comment
+let deleteCommentById = (id) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let comment = await db.Comment.findOne({
+                where: { id: id }
+            });
+
+            if (!comment) {
+                return resolve(false); // không tìm thấy comment
+            }
+
+            await comment.destroy();
+            resolve(true);
+        } catch (e) {
+            reject(e);
+        }
+    });
+};
+
+
 let putUpdatePost = (item) => {
     return new Promise(async (resolve, reject) => {
         try {
@@ -324,5 +296,5 @@ module.exports = {
     doneComment: doneComment,
     getDetailHandbook: getDetailHandbook, //
     getHandbookPagination: getHandbookPagination, //
-    getPostPagination: getPostPagination,//
+    deleteCommentById: deleteCommentById,//
 };

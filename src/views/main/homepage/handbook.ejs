@@ -20,7 +20,7 @@
                     </div>
                     <div class="col-2 d-flex justify-content-center align-items-center">
                         <span><a href="https://www.facebook.com/DoctorCare255" target="_blank"
-                                class="text-decoration-none"><b>Cần hỗ trợ?</b></a></span>
+                                class="text-decoration-none" style="color: white;"><b>Cần hỗ trợ?</b></a></span>
                     </div>
                 </div>
             </div>
@@ -63,8 +63,8 @@
         });
 
         // Xử lý tìm kiếm khi nhấn Enter trong ô tìm kiếm
-        $(document).ready(function() {
-            $('#searchInDetailPost').on('keydown', function(event) {
+        $(document).ready(function () {
+            $('#searchInDetailPost').on('keydown', function (event) {
                 if (event.which === 13 || event.keyCode === 13) {
                     event.preventDefault(); // Ngăn form submit mặc định
                     let keyword = $(this).val().trim();
