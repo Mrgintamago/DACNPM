@@ -35,7 +35,7 @@ function getScheduleDoctorByDate() {
 
                         if (index === data.message.length - 1 && schedule.isDisable === true) {
                             html += `<div>
-                                  There are no scheduled visits in the current timeframe. Please select the next scheduled exams.
+                                  Không có lịch khám nào trong khung giờ hiện tại. Vui lòng chọn lịch khám tiếp theo.
                             </div>`
                         }
 
@@ -60,7 +60,7 @@ function getScheduleDoctorByDate() {
                 } else {
                     html = `
                             <div>
-                                 Doctor "${data.doctor.name}" does not have an appointment on <b>${value}</b>. Please select the next examination schedule.
+                                 Bác sĩ "${data.doctor.name}" không có lịch khám vào ngày <b>${value}</b>. Vui lòng chọn lịch khám tiếp theo.
                             </div>
                     `;
                     moreInfo = '';
@@ -111,7 +111,7 @@ function specializationGetScheduleDoctorByDate() {
 
                         if (index === data.message.length - 1 && schedule.isDisable === true) {
                             html += `<div>
-                                   There are no scheduled visits in the current timeframe. Please select the next scheduled exams.
+                                   Không có lịch khám nào trong khung giờ hiện tại. Vui lòng chọn lịch khám tiếp theo.
                             </div>`
                         }
 
@@ -133,7 +133,7 @@ function specializationGetScheduleDoctorByDate() {
                     html = `
                             <div class="no-schedule">
                                
-                                 Doctor "${data.doctor.name}" does not have an appointment on <b>${value}</b>. Please select the next examination schedule.
+                                 Bác sĩ "${data.doctor.name}" không có lịch khám vào ngày <b>${value}</b>. Vui lòng chọn lịch khám tiếp theo.
 
                             </div>
                     `;
@@ -147,7 +147,7 @@ function specializationGetScheduleDoctorByDate() {
 
             },
             error: function (error) {
-                alertify.error('An error occurs, please try again later!!');
+                alertify.error('Xảy ra lỗi, vui lòng thử lại lần sau!');
                 console.log(error)
             }
         });
@@ -232,7 +232,7 @@ function generatePostPagination(page) {
             $("#list-posts-client").append(html);
         },
         error: function (err) {
-            alertify.error('An error occurs, please try again later!');
+            alertify.error('Xảy ra lỗi, vui lòng thử lại sau!');
             console.log(err)
         }
     })
@@ -296,7 +296,7 @@ function generateHandbookPagination(page) {
             $("#list-posts-client").append(html);
         },
         error: function (err) {
-            alertify.error('An error occurs, please try again later!');
+            alertify.error('Xảy ra lỗi, vui lòng thử lại sau!');
             console.log(err)
         }
     });
@@ -555,7 +555,7 @@ function showModalBookingSpecializationPage() {
                 $('#modalBookingSpe').modal('show');
             },
             error: function (error) {
-                alertify.error('An error occurs, please try again later!!');
+                alertify.error('Xảy ra lỗi, vui lòng phủ lại sau!');
                 console.log(error);
             }
         })

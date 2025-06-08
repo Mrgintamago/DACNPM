@@ -507,7 +507,7 @@ let bulkCreateSchedule = (data) => {
 
             try {
                 // Sử dụng raw query để kiểm tra lịch đã tồn tại
-                const [existingSchedules] = await db.sequelize.query(
+                const existingSchedules = await db.sequelize.query(
                     `SELECT DISTINCT time FROM Schedules 
                     WHERE doctorId = ? AND date = ?`,
                     {

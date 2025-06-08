@@ -7,44 +7,6 @@
         </button>
     </div>
 
-    <!-- Phần bộ lọc -->
-    <div class="card shadow mb-4">
-        <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Bộ lọc</h6>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="doctorId">Bác sĩ</label>
-                        <select id="doctorId" class="form-control">
-                            <option value="">Tất cả bác sĩ</option>
-                            <% if (doctors && doctors.length> 0) { %>
-                                <% doctors.forEach(function(doctor) { %>
-                                    <option value="<%= doctor.id %>">
-                                        <%= doctor.name %>
-                                    </option>
-                                    <% }); %>
-                                        <% } %>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="dateSearch">Ngày</label>
-                        <input type="text" id="dateSearch" class="form-control" placeholder="DD/MM/YYYY">
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label>&nbsp;</label>
-                        <button id="btnSearch" class="btn btn-primary d-block">Tìm kiếm</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- Phần lịch đã tạo - sử dụng server-side rendering giống schedule.ejs -->
     <div class="card shadow mb-4">
         <div class="card-header py-3">

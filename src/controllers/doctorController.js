@@ -122,7 +122,7 @@ let getManageAppointment = async (req, res) => {
     // sort by range time
     let sort = _.sortBy(appointments, x => x.timeBooking);
     //group by range time
-    let final = _.groupBy(sort, function(x) {
+    let final = _.groupBy(sort, function (x) {
         return x.timeBooking;
     });
 
@@ -212,7 +212,7 @@ let getDoctorsForSchedule = async (req, res) => {
             order: [['name', 'ASC']],
             raw: true
         });
-        
+
         return res.status(200).json({
             errCode: 0,
             data: doctors,
@@ -230,27 +230,27 @@ let getDoctorsForSchedule = async (req, res) => {
 let createSchedule = async (req, res) => {
     try {
         console.log("Request body received:", req.body);
-        
+
         // Lấy thông tin từ request
         let doctorId = req.body.doctorId;
         let date = req.body.date;
         let timeArr = req.body.schedules || req.body.timeArr;
-        
+
         // QUAN TRỌNG: Kiểm tra nếu doctorId trùng với admin ID, không thực hiện
-        if (doctorId == 1) {
+        if (req.user.roleId == 1 && doctorId == req.user.id) {
             return res.status(200).json({
                 errCode: 5,
                 errMessage: 'Không thể tạo lịch cho tài khoản admin'
             });
         }
-        
+
         // Xử lý tiếp theo...
         let response = await doctorService.bulkCreateSchedule({
             doctorId: doctorId,
             date: date,
             timeArr: timeArr
         });
-        
+
         return res.status(200).json(response);
     } catch (e) {
         console.error('Error creating schedule:', e);
@@ -272,9 +272,9 @@ let autoCreateAllDoctorsSchedule = async (req, res) => {
             attributes: ['id', 'name'],
             raw: true
         });
-        
+
         console.log("Creating schedules for doctors:", doctors.map(d => d.id));
-        
+
         // Code tạo lịch tiếp theo...
     } catch (e) {
         // Xử lý lỗi...
