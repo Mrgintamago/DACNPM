@@ -255,7 +255,7 @@ let putUpdateDoctor = (req, res) => {
 
         try {
             console.log('req.file:', req.file);
-            
+
             let item = {
                 id: req.body.id,
                 name: req.body.nameDoctor,
@@ -327,6 +327,18 @@ let deleteSpecializationById = async (req, res) => {
 
 };
 
+let deleteCommentById = async (req, res) => {
+    try {
+        await supporterService.deleteCommentById(req.body.id);
+        return res.status(200).json({
+            message: 'Xóa bình luận thành công!'
+        })
+    } catch (e) {
+        console.log(e);
+        return res.status(500).json(e);
+    }
+}
+
 let deletePostById = async (req, res) => {
     try {
         await supporterService.deletePostById(req.body.id);
@@ -357,6 +369,7 @@ let getEditPost = async (req, res) => {
         console.log(e);
     }
 };
+
 
 let putUpdatePost = async (req, res) => {
     try {
@@ -399,21 +412,23 @@ let getManageCreateScheduleForDoctorsPage = async (req, res) => {
 
         // Lấy dữ liệu lịch cho 3 ngày
         let schedules = await db.sequelize.query(
+            // SELECT s.*, u.name as doctorName 
+            //SELECT DISTINCT s.time, s.date, s.doctorId, u.name as doctorName 
             `SELECT s.*, u.name as doctorName 
              FROM Schedules s 
              LEFT JOIN Users u ON s.doctorId = u.id 
              WHERE s.date IN (:date1, :date2, :date3)`,
             {
-                replacements: { 
+                replacements: {
                     date1: threeDaySchedules[0],
-                    date2: threeDaySchedules[1], 
-                    date3: threeDaySchedules[2] 
+                    date2: threeDaySchedules[1],
+                    date3: threeDaySchedules[2]
                 },
                 type: db.sequelize.QueryTypes.SELECT,
                 raw: true
             }
         );
-        
+
         // Lấy danh sách bác sĩ để hiển thị dropdown
         let doctors = await db.sequelize.query(
             `SELECT id, name, email 
@@ -433,7 +448,7 @@ let getManageCreateScheduleForDoctorsPage = async (req, res) => {
             threeDaySchedules: threeDaySchedules,
             doctors: doctors
         });
-        
+
     } catch (e) {
         console.error("Error in getManageCreateScheduleForDoctorsPage:", e);
         return res.render('main/users/error.ejs', {
@@ -465,20 +480,20 @@ let getSpecializationById = async (req, res) => {
                 errMessage: 'Thiếu thông tin ID chuyên khoa'
             });
         }
-        
+
         const id = parseInt(req.body.id);
         let specialization = await db.Specialization.findOne({
             where: { id: id },
             raw: true
         });
-        
+
         if (!specialization) {
             return res.status(200).json({
                 errCode: 2,
                 errMessage: 'Không tìm thấy chuyên khoa'
             });
         }
-        
+
         return res.status(200).json({
             errCode: 0,
             data: specialization
@@ -499,16 +514,16 @@ let getEditSpecializationPage = async (req, res) => {
         if (isNaN(id) || id <= 0) {
             return res.status(400).send('ID không hợp lệ');
         }
-        
+
         console.log("Fetching specialization with ID:", id);
-        
+
         let specialization = await specializationService.getSpecializationById(id);
         console.log("Found specialization:", specialization);
-        
+
         if (!specialization) {
             return res.status(404).send("Không tìm thấy chuyên khoa");
         }
-        
+
         return res.render("main/users/admins/editSpecialization.ejs", {
             user: req.user,
             specialization: specialization
@@ -524,10 +539,10 @@ let getEditSpecializationPage = async (req, res) => {
 let putUpdateSpecialization = async (req, res) => {
     try {
         console.log("Raw request body:", req.body);
-        
+
         // Chuyển đổi ID từ chuỗi sang số
         let specializationId = req.body.id;
-        
+
         // ID là chuỗi rỗng hoặc không tồn tại
         if (!specializationId || specializationId === '') {
             console.log("ID is missing or empty in request body:", req.body);
@@ -536,7 +551,7 @@ let putUpdateSpecialization = async (req, res) => {
                 errMessage: 'Thiếu thông tin ID chuyên khoa'
             });
         }
-        
+
         // Parse ID thành số
         specializationId = parseInt(specializationId);
         if (isNaN(specializationId) || specializationId <= 0) {
@@ -545,12 +560,12 @@ let putUpdateSpecialization = async (req, res) => {
                 errMessage: 'ID chuyên khoa không hợp lệ'
             });
         }
-        
+
         // Cập nhật lại ID trong req.body
         req.body.id = specializationId;
-        
+
         console.log("Updating specialization with ID:", specializationId);
-        
+
         let result = await specializationService.updateSpecialization(req.body);
         return res.status(200).json({
             errCode: 0,
@@ -574,22 +589,22 @@ let deleteSpecialization = async (req, res) => {
                 errMessage: 'Thiếu thông tin ID chuyên khoa'
             });
         }
-        
+
         const id = parseInt(req.body.id);
         let specialization = await db.Specialization.findOne({
             where: { id: id }
         });
-        
+
         if (!specialization) {
             return res.status(200).json({
                 errCode: 2,
                 errMessage: 'Không tìm thấy chuyên khoa'
             });
         }
-        
+
         // Xóa chuyên khoa
         await specialization.destroy();
-        
+
         return res.status(200).json({
             errCode: 0,
             message: 'Xóa chuyên khoa thành công'
@@ -612,10 +627,10 @@ let getSupporterById = async (req, res) => {
                 errMessage: 'Thiếu thông tin ID tư vấn viên'
             });
         }
-        
+
         const id = parseInt(req.body.id);
         let supporter = await db.User.findOne({
-            where: { 
+            where: {
                 id: id,
                 roleId: 3 // Đảm bảo đây là tư vấn viên
             },
@@ -624,14 +639,14 @@ let getSupporterById = async (req, res) => {
             },
             raw: true
         });
-        
+
         if (!supporter) {
             return res.status(200).json({
                 errCode: 2,
                 errMessage: 'Không tìm thấy tư vấn viên'
             });
         }
-        
+
         return res.status(200).json({
             errCode: 0,
             data: supporter
@@ -652,9 +667,9 @@ let getEditSupporterPage = async (req, res) => {
         if (isNaN(id) || id <= 0) {
             return res.status(400).send('ID không hợp lệ');
         }
-        
+
         let supporter = await db.User.findOne({
-            where: { 
+            where: {
                 id: id,
                 roleId: 3 // Đảm bảo đây là tư vấn viên
             },
@@ -663,11 +678,11 @@ let getEditSupporterPage = async (req, res) => {
             },
             raw: true
         });
-        
+
         if (!supporter) {
             return res.status(404).send("Không tìm thấy tư vấn viên");
         }
-        
+
         return res.render("main/users/admins/editSupporter.ejs", {
             user: req.user,
             supporter: supporter
@@ -688,21 +703,21 @@ let putUpdateSupporter = async (req, res) => {
                 errMessage: 'ID tư vấn viên không hợp lệ'
             });
         }
-        
+
         let supporter = await db.User.findOne({
-            where: { 
+            where: {
                 id: supporterId,
                 roleId: 3
             }
         });
-        
+
         if (!supporter) {
             return res.status(404).json({
                 errCode: 2,
                 errMessage: 'Không tìm thấy tư vấn viên'
             });
         }
-        
+
         // Cập nhật thông tin
         await supporter.update({
             name: req.body.name || supporter.name,
@@ -712,7 +727,7 @@ let putUpdateSupporter = async (req, res) => {
             description: req.body.description || supporter.description,
             isActive: req.body.isActive !== undefined ? req.body.isActive : supporter.isActive
         });
-        
+
         return res.status(200).json({
             errCode: 0,
             message: 'Cập nhật tư vấn viên thành công'
@@ -735,26 +750,26 @@ let deleteSupporter = async (req, res) => {
                 errMessage: 'Thiếu thông tin ID tư vấn viên'
             });
         }
-        
+
         const id = parseInt(req.body.id);
         let supporter = await db.User.findOne({
-            where: { 
+            where: {
                 id: id,
                 roleId: 3
             }
         });
-        
+
         if (!supporter) {
             return res.status(200).json({
                 errCode: 2,
                 errMessage: 'Không tìm thấy tư vấn viên'
             });
         }
-        
+
         // Xóa tư vấn viên (hoặc đánh dấu xóa)
         // Tùy vào thiết kế hệ thống, có thể xóa hoàn toàn hoặc đánh dấu là đã xóa
         await supporter.destroy(); // Nếu hệ thống có paranoid, sẽ chỉ cập nhật deletedAt
-        
+
         return res.status(200).json({
             errCode: 0,
             message: 'Xóa tư vấn viên thành công'
@@ -772,30 +787,30 @@ let deleteSupporter = async (req, res) => {
 let handleBulkCreateSchedule = async (req, res) => {
     try {
         console.log("Starting bulk schedule creation process");
-        
+
         // Thiết lập các ngày (3 ngày tới)
         const today = new Date();
         const dates = [];
-        
+
         for (let i = 0; i < 3; i++) {
             const nextDay = new Date(today);
             nextDay.setDate(today.getDate() + i);
-            
+
             // Format: DD/MM/YYYY
             const day = String(nextDay.getDate()).padStart(2, '0');
             const month = String(nextDay.getMonth() + 1).padStart(2, '0');
             const year = nextDay.getFullYear();
             dates.push(`${day}/${month}/${year}`);
         }
-        
+
         console.log("Creating schedules for dates:", dates);
-        
+
         // Khung giờ mặc định
         const timeSlots = [
             '08:00 - 09:00', '09:00 - 10:00', '10:00 - 11:00',
             '13:00 - 14:00', '14:00 - 15:00', '15:00 - 16:00'
         ];
-        
+
         // Lấy danh sách bác sĩ từ bảng Users
         try {
             // Thay đổi cách truy vấn để lấy chính xác mảng các user có roleId = 2
@@ -808,41 +823,41 @@ let handleBulkCreateSchedule = async (req, res) => {
                 attributes: ['id'],
                 raw: true
             });
-            
+
             // Kiểm tra và log kết quả truy vấn
             console.log("Query result:", doctors);
-            
+
             if (!doctors || doctors.length === 0) {
                 return res.status(200).json({
                     errCode: 1,
                     errMessage: 'Không tìm thấy bác sĩ nào trong hệ thống'
                 });
             }
-            
+
             // Lấy mảng chỉ chứa các ID của bác sĩ
             const doctorIds = doctors.map(doctor => doctor.id);
             console.log("Doctor IDs extracted from database:", doctorIds);
-            
+
             // Khởi tạo biến đếm
             let successCount = 0;
             let errorCount = 0;
-            
+
             // Xử lý từng bác sĩ
             for (const doctorId of doctorIds) {
                 console.log(`Processing doctor ID: ${doctorId}`);
-                
+
                 // Xử lý từng ngày
                 for (const date of dates) {
                     try {
                         console.log(`Creating schedule for doctor ${doctorId} on ${date}`);
-                        
+
                         // Tạo lịch cho bác sĩ
                         const result = await doctorService.bulkCreateSchedule({
                             doctorId: doctorId,
                             date: date,
                             timeArr: timeSlots
                         });
-                        
+
                         if (result.errCode === 0) {
                             successCount += (result.data?.length || 0);
                             console.log(`Successfully created schedules for doctor ${doctorId} on ${date}`);
@@ -855,7 +870,7 @@ let handleBulkCreateSchedule = async (req, res) => {
                     }
                 }
             }
-            
+
             return res.status(200).json({
                 errCode: 0,
                 errMessage: `Đã tạo thành công ${successCount} lịch khám cho các bác sĩ`,
@@ -886,12 +901,12 @@ let getSchedulesList = async (req, res) => {
     try {
         // Lấy filter từ query params
         const { doctorId, date } = req.query;
-        
+
         // Xây dựng điều kiện tìm kiếm
         let condition = {};
         if (doctorId) condition.doctorId = doctorId;
         if (date) condition.date = date;
-        
+
         // Sửa lỗi - không sử dụng destructuring
         const schedules = await db.sequelize.query(
             `SELECT s.*, u.id as userId, u.name as doctorName, u.email as doctorEmail 
@@ -907,9 +922,9 @@ let getSchedulesList = async (req, res) => {
                 raw: true
             }
         );
-        
+
         console.log("Schedules data type:", typeof schedules, Array.isArray(schedules));
-        
+
         // Format lại kết quả để frontend dễ xử lý
         const formattedSchedules = Array.isArray(schedules) ? schedules.map(schedule => ({
             id: schedule.id,
@@ -924,7 +939,7 @@ let getSchedulesList = async (req, res) => {
                 email: schedule.doctorEmail
             }
         })) : [];
-        
+
         return res.status(200).json({
             errCode: 0,
             errMessage: 'Lấy danh sách lịch khám thành công',
@@ -954,7 +969,7 @@ let getAllDoctors = async (req, res) => {
                 raw: true
             }
         );
-        
+
         return res.status(200).json({
             errCode: 0,
             errMessage: 'OK',
@@ -974,7 +989,7 @@ let getSchedulesByDays = async (req, res) => {
     try {
         const { dates } = req.query;
         let dateList = [];
-        
+
         const parsedDates = dates ? JSON.parse(dates) : null;
         if (parsedDates && Array.isArray(parsedDates)) {
             dateList = parsedDates;
@@ -991,7 +1006,7 @@ let getSchedulesByDays = async (req, res) => {
                 dateList.push(strDate);
             }
         }
-        
+
         // Query lấy lịch
         const schedules = await db.sequelize.query(
             `SELECT s.*, u.name as doctorName 
@@ -1004,7 +1019,7 @@ let getSchedulesByDays = async (req, res) => {
                 raw: true
             }
         );
-        
+
         return res.status(200).json({
             errCode: 0,
             errMessage: 'OK',
@@ -1024,11 +1039,11 @@ let getSchedulesByDays = async (req, res) => {
 let getScheduleDetailPage = async (req, res) => {
     try {
         const date = req.query.date;
-        
+
         if (!date) {
             return res.redirect('/users/admin/manage-schedule-for-doctors');
         }
-        
+
         return res.render('main/users/admins/scheduleDetail.ejs', {
             user: req.user,
             date: date
@@ -1063,28 +1078,28 @@ let getCreateSupporterPage = async (req, res) => {
 let createSupporter = async (req, res) => {
     try {
         const { name, email, password, phone, address, description, isActive } = req.body;
-        
+
         // Validate
         if (!name || !email || !password) {
             req.flash('errors', 'Vui lòng nhập đầy đủ thông tin bắt buộc');
             return res.redirect('/users/manage/supporter/create');
         }
-        
+
         // Kiểm tra email đã tồn tại chưa
         const existingUser = await db.User.findOne({
             where: { email: email },
             raw: true
         });
-        
+
         if (existingUser) {
             req.flash('errors', 'Email đã tồn tại trong hệ thống');
             return res.redirect('/users/manage/supporter/create');
         }
-        
+
         // Hash password
         const salt = bcrypt.genSaltSync(10);
         const hashPassword = bcrypt.hashSync(password, salt);
-        
+
         // Tạo user mới với role là supporter (role ID 3)
         await db.User.create({
             name: name,
@@ -1096,7 +1111,7 @@ let createSupporter = async (req, res) => {
             isActive: isActive === '1' ? true : false,
             description: description || null
         });
-        
+
         req.flash('success', 'Thêm tư vấn viên thành công');
         return res.redirect('/users/manage/supporter'); // Redirect trở lại trang danh sách sau khi thêm thành công
     } catch (e) {
@@ -1138,7 +1153,7 @@ let postCreateSpecialization = async (req, res) => {
 
         // Gọi service để tạo chuyên khoa mới
         let specialization = await specializationService.createSpecialization(data);
-        
+
         if (specialization) {
             req.flash('success', 'Tạo chuyên khoa mới thành công');
             return res.redirect('/users/manage/specialization');
@@ -1180,6 +1195,7 @@ module.exports = {
     deleteDoctorById: deleteDoctorById,
     deleteSpecializationById: deleteSpecializationById,
     deletePostById: deletePostById,
+    deleteCommentById: deleteCommentById,
 
     getSpecializationById: getSpecializationById,
     getEditSpecializationPage: getEditSpecializationPage,

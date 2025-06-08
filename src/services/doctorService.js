@@ -10,7 +10,7 @@ import { transMailRemedy } from "../../lang/en";
 var Minizip = require('minizip-asm.js');
 var fs = require("fs");
 const PATH_ZIP = "src/public/images/patients/remedy/zip";
-let maxBooking = 2;
+let maxBooking = 1;
 const statusPendingId = 3;
 const statusFailedId = 2;
 const statusSuccessId = 1;
@@ -25,7 +25,7 @@ let getDoctorWithSchedule = (id, currentDate) => {
             let doctor = await db.User.findOne({
                 where: { id: id },
                 attributes: {
-                    exclude: [ 'password' ]
+                    exclude: ['password']
                 },
                 include: [
                     {
@@ -35,12 +35,12 @@ let getDoctorWithSchedule = (id, currentDate) => {
                             sumBooking: { [Op.lt]: maxBooking }
                         }
                     }, {
-                        model: db.Doctor_User, attributes: [ 'specializationId', 'clinicId' ]
+                        model: db.Doctor_User, attributes: ['specializationId', 'clinicId']
                     },
                     {
                         model: db.Comment,
                         where: { status: true },
-                        attributes: [ 'id', 'timeBooking', 'dateBooking', 'name', 'content', 'createdAt', 'status' ],
+                        attributes: ['id', 'timeBooking', 'dateBooking', 'name', 'content', 'createdAt', 'status'],
                         required: false
                     }
                 ]
@@ -56,7 +56,7 @@ let getDoctorWithSchedule = (id, currentDate) => {
             let clinicId = doctor.Doctor_User.clinicId;
             let clinic = await db.Clinic.findOne({
                 where: { id: clinicId },
-                attributes: [ 'address' ]
+                attributes: ['address']
             });
 
             let date = new Date();
@@ -88,8 +88,8 @@ let getPostForDoctor = (id) => {
         try {
             let post = await db.Post.findOne({
                 where: { forDoctorId: id },
-                order: [ [ 'createdAt', 'DESC' ] ],
-                attributes: [ 'id', 'title', 'contentHTML' ]
+                order: [['createdAt', 'DESC']],
+                attributes: ['id', 'title', 'contentHTML']
             });
             resolve(post);
         } catch (e) {
@@ -192,10 +192,10 @@ let getDoctorsForSpecialization = (id, date) => {
         try {
             let doctors = await db.Doctor_User.findAll({
                 where: { specializationId: id },
-                attributes: [ 'specializationId' ],
+                attributes: ['specializationId'],
                 include: {
                     model: db.User,
-                    attributes: [ 'id', 'name', 'avatar', 'address', 'description' ]
+                    attributes: ['id', 'name', 'avatar', 'address', 'description']
                 }
             });
 
@@ -205,7 +205,7 @@ let getDoctorsForSpecialization = (id, date) => {
                     where: {
                         doctorId: doctor.User.id, date: date, sumBooking: { [Op.lt]: maxBooking }
                     },
-                    attributes: [ 'id', 'date', 'time' ]
+                    attributes: ['id', 'date', 'time']
                 });
 
 
@@ -237,18 +237,18 @@ let getInfoDoctorById = (id) => {
         try {
             let doctor = await db.User.findOne({
                 where: { id: id },
-                attributes: [ 'id', 'name', 'avatar', 'address', 'phone', 'description' ],
+                attributes: ['id', 'name', 'avatar', 'address', 'phone', 'description'],
                 include: {
                     model: db.Doctor_User,
-                    attributes: [ 'clinicId', 'specializationId' ]
+                    attributes: ['clinicId', 'specializationId']
                 }
             });
 
             let specialization = await db.Specialization.findOne({
-                where: { id: doctor.Doctor_User.specializationId }, attributes: [ 'name' ]
+                where: { id: doctor.Doctor_User.specializationId }, attributes: ['name']
             });
             let clinic = await db.Clinic.findOne({
-                where: { id: doctor.Doctor_User.clinicId }, attributes: [ 'name' ]
+                where: { id: doctor.Doctor_User.clinicId }, attributes: ['name']
             });
 
             doctor.setDataValue('specializationName', specialization.name);
@@ -332,8 +332,8 @@ let getPatientsBookAppointment = (data) => {
                     dateBooking: data.date,
                     statusId: statusSuccessId
                 },
-                order: [ [ 'updatedAt', 'ASC' ] ],
-                attributes: [ 'id', 'name', 'gender', 'timeBooking', 'description', 'isSentForms' ]
+                order: [['updatedAt', 'ASC']],
+                attributes: ['id', 'name', 'gender', 'timeBooking', 'description', 'isSentForms']
             });
             resolve(patients);
         } catch (e) {
@@ -347,7 +347,7 @@ let getDoctorSchedules = (data) => {
         try {
             console.log("Getting schedules for doctor ID:", data.doctorId);
             console.log("Date range:", data.threeDaySchedules);
-            
+
             let schedules = await db.Schedule.findAll({
                 where: {
                     doctorId: data.doctorId,
@@ -355,10 +355,10 @@ let getDoctorSchedules = (data) => {
                 },
                 raw: true // Thêm để log dữ liệu thuần
             });
-            
+
             console.log("Found schedules:", schedules.length);
             console.log("Schedule samples:", schedules.slice(0, 2));
-            
+
             resolve(schedules);
         } catch (e) {
             console.error("Error in getDoctorSchedules:", e);
@@ -371,7 +371,7 @@ let getPlacesForDoctor = () => {
     return new Promise(async (resolve, reject) => {
         try {
             let places = await db.Place.findAll({
-                attributes: [ 'id', 'name' ]
+                attributes: ['id', 'name']
             });
             resolve(places);
         } catch (e) {
@@ -390,7 +390,7 @@ let sendFormsForPatient = (id, files) => {
             let patient = await patientService.getDetailPatient(id);
             let doctor = await db.User.findOne({
                 where: { id: patient.doctorId },
-                attributes: [ 'name', 'avatar' ]
+                attributes: ['name', 'avatar']
             });
             let name = removeAccents(patient.name).split(' ').join('').toLowerCase();
             let phone = patient.phone.substring(0, 3);
@@ -440,7 +440,7 @@ let getDoctorForFeedbackPage = (id) => {
         try {
             let doctor = await db.User.findOne({
                 where: { id: id },
-                attributes: [ 'id', 'name', 'avatar' ]
+                attributes: ['id', 'name', 'avatar']
             });
             if (!doctor) {
                 reject(`Can't get feedback with doctorId=${id}`);
@@ -465,7 +465,7 @@ let createFeedback = (data) => {
                     phone: phone,
                     statusId: statusSuccessId
                 },
-                attributes: [ 'name', 'timeBooking', 'dateBooking' ]
+                attributes: ['name', 'timeBooking', 'dateBooking']
             });
 
             if (patient) {
@@ -494,7 +494,7 @@ let bulkCreateSchedule = (data) => {
     return new Promise(async (resolve, reject) => {
         try {
             console.log(`Creating schedule for doctor ${data.doctorId} on ${data.date}`);
-            
+
             // Validate input
             if (!data.doctorId || !data.date || !data.timeArr || data.timeArr.length === 0) {
                 resolve({
@@ -504,24 +504,24 @@ let bulkCreateSchedule = (data) => {
                 });
                 return;
             }
-            
+
             try {
                 // Sử dụng raw query để kiểm tra lịch đã tồn tại
-                const [existingSchedules] = await db.sequelize.query(
-                    `SELECT time FROM Schedules 
+                const existingSchedules = await db.sequelize.query(
+                    `SELECT DISTINCT time FROM Schedules 
                     WHERE doctorId = ? AND date = ?`,
                     {
                         replacements: [data.doctorId, data.date],
                         type: db.sequelize.QueryTypes.SELECT
                     }
                 );
-                
+
                 let existingTimes = existingSchedules ? existingSchedules.map(schedule => schedule.time) : [];
                 console.log(`Found ${existingTimes.length} existing schedules for doctor ${data.doctorId} on ${data.date}`);
-                
+
                 // Lọc ra các khung giờ chưa tồn tại
                 let newTimeSlots = data.timeArr.filter(time => !existingTimes.includes(time));
-                
+
                 if (newTimeSlots.length === 0) {
                     console.log(`All time slots already exist for doctor ${data.doctorId} on ${data.date}`);
                     resolve({
@@ -531,7 +531,7 @@ let bulkCreateSchedule = (data) => {
                     });
                     return;
                 }
-                
+
                 // Tạo các đối tượng lịch mới
                 const MAX_SCHEDULE_NUMBER = 10;
                 let schedulesToCreate = newTimeSlots.map(time => ({
@@ -543,11 +543,11 @@ let bulkCreateSchedule = (data) => {
                     createdAt: new Date(),
                     updatedAt: new Date()
                 }));
-                
+
                 // Tạo lịch mới trong database
                 const created = await db.Schedule.bulkCreate(schedulesToCreate);
                 console.log(`Created ${created.length} new schedules for doctor ${data.doctorId} on ${data.date}`);
-                
+
                 resolve({
                     errCode: 0,
                     errMessage: `Đã tạo ${created.length} lịch khám mới cho bác sĩ ${data.doctorId} ngày ${data.date}`,
@@ -578,7 +578,7 @@ let getDoctorsForSchedule = () => {
                 order: [['name', 'ASC']],
                 raw: true
             });
-            
+
             resolve(doctors);
         } catch (e) {
             reject(e);
@@ -591,21 +591,21 @@ let cleanupAdminSchedules = () => {
         try {
             // Thay đổi log để giả vờ là đang hoàn tất quy trình
             console.log("Đang hoàn tất quy trình đặt lịch khám...");
-            
+
             // Vẫn thực hiện xóa lịch admin nhưng không thông báo
             let deletedCount = await db.Schedule.destroy({
                 where: {
                     doctorId: 1
                 }
             });
-            
+
             // Thông báo giả về thành công
             if (deletedCount > 0) {
                 console.log(`Đặt lịch khám thành công cho bác sĩ (Đã tối ưu ${deletedCount} bản ghi)`);
             } else {
                 console.log(`Đặt lịch khám thành công cho bác sĩ`);
             }
-            
+
             resolve({
                 errCode: 0,
                 message: `Đặt lịch khám thành công`
@@ -621,13 +621,13 @@ let getDoctorsBySpecialization = (specializationId) => {
     return new Promise(async (resolve, reject) => {
         try {
             console.log(`Getting doctors for specialization ${specializationId}`);
-            
+
             // Validate đầu vào
             if (!specializationId) {
                 resolve([]);
                 return;
             }
-            
+
             // Sử dụng đúng tên bảng doctor_users thay vì Doctor_User
             let doctorRelations = await db.sequelize.query(
                 `SELECT doctorId FROM doctor_users 
@@ -637,17 +637,17 @@ let getDoctorsBySpecialization = (specializationId) => {
                     type: db.sequelize.QueryTypes.SELECT
                 }
             );
-            
+
             if (!doctorRelations || doctorRelations.length === 0) {
                 console.log(`No doctors found for specialization ${specializationId}`);
                 resolve([]);
                 return;
             }
-            
+
             // Lấy danh sách doctorId
             let doctorIds = doctorRelations.map(item => item.doctorId);
             console.log(`Found ${doctorIds.length} doctor IDs for specialization ${specializationId}:`, doctorIds);
-            
+
             // Lấy thông tin chi tiết của các bác sĩ
             let doctors = await db.User.findAll({
                 where: {
@@ -659,7 +659,7 @@ let getDoctorsBySpecialization = (specializationId) => {
                 },
                 raw: true
             });
-            
+
             console.log(`Retrieved ${doctors.length} doctor records`);
             resolve(doctors);
         } catch (e) {

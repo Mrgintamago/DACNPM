@@ -10,19 +10,19 @@ let getDetailClinicPage = (id, date) => {
         try {
             let clinic = await db.Clinic.findOne({
                 where: { id: id },
-                attributes: [ 'id', 'name', 'image', 'address', 'phone', 'introductionHTML', 'description' ],
+                attributes: ['id', 'name', 'image', 'address', 'phone', 'introductionHTML', 'description'],
             });
 
-            if(!clinic){
+            if (!clinic) {
                 reject(`Can't get clinic with id = ${id}`);
             }
 
             let doctors = await db.Doctor_User.findAll({
                 where: { clinicId: id },
-                attributes: [ 'clinicId' ],
+                attributes: ['clinicId'],
                 include: {
                     model: db.User,
-                    attributes: [ 'id', 'name', 'avatar', 'address', 'description' ]
+                    attributes: ['id', 'name', 'avatar', 'address', 'description']
                 }
             });
 
@@ -31,7 +31,7 @@ let getDetailClinicPage = (id, date) => {
                     where: {
                         doctorId: doctor.User.id, date: date, sumBooking: { [Op.lt]: maxBooking }
                     },
-                    attributes: [ 'id', 'date', 'time' ]
+                    attributes: ['id', 'date', 'time']
                 });
 
                 let dateNow = new Date();

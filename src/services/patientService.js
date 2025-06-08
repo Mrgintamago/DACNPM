@@ -77,7 +77,7 @@ let getForPatientsTabs = () => {
     });
 };
 
-let changeStatusPatient = (data, logs) => {
+/*let changeStatusPatient = (data, logs) => {
     return new Promise(async (resolve, reject) => {
         try {
 
@@ -141,7 +141,111 @@ let changeStatusPatient = (data, logs) => {
             reject(e);
         }
     });
+};*/
+
+// Huy - Thanh cong 
+let changeStatusPatient = (data, logs) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let patient = await db.Patient.findOne({
+                where: { id: data.id }
+            });
+
+            let doctor = await db.User.findOne({
+                where: { id: patient.doctorId },
+                attributes: ['name', 'avatar']
+            });
+
+            // Lấy clinicId và specializationId từ bảng doctor_user
+            let doctorInfo = await db.Doctor_User.findOne({
+                where: { doctorId: patient.doctorId },
+                attributes: ['clinicId', 'specializationId']
+            });
+
+            let clinic = await db.Clinic.findOne({
+                where: { id: doctorInfo.clinicId },
+                attributes: ['name']
+            });
+
+            let specialization = await db.Specialization.findOne({
+                where: { id: doctorInfo.specializationId },
+                attributes: ['name']
+            });
+
+            // Cập nhật lịch nếu trạng thái là Thành công
+            if (data.statusId === statusSuccessId) {
+                let schedule = await db.Schedule.findOne({
+                    where: {
+                        doctorId: patient.doctorId,
+                        time: patient.timeBooking,
+                        date: patient.dateBooking
+                    }
+                });
+
+                await schedule.update({ sumBooking: schedule.sumBooking + 1 });
+            }
+
+            // Cập nhật lịch nếu trạng thái là Hủy
+            if (data.statusId === statusFailedId) {
+                let schedule = await db.Schedule.findOne({
+                    where: {
+                        doctorId: patient.doctorId,
+                        time: patient.timeBooking,
+                        date: patient.dateBooking
+                    }
+                });
+
+                await schedule.update({ sumBooking: schedule.sumBooking - 1 });
+            }
+
+            // Cập nhật thông tin bệnh nhân
+            await patient.update(data);
+
+            // Tạo log
+            let log = await db.SupporterLog.create(logs);
+
+            // Gửi email thành công
+            if (data.statusId === statusSuccessId && patient.email) {
+                let dataSend = {
+                    time: patient.timeBooking,
+                    date: patient.dateBooking,
+                    doctor: doctor.name,
+                    clinic: clinic.name,
+                    specialization: specialization.name
+                };
+
+                await mailer.sendEmailNormal(
+                    patient.email,
+                    transMailBookingSuccess.subject,
+                    transMailBookingSuccess.template(dataSend)
+                );
+            }
+
+            // Gửi email thất bại
+            if (data.statusId === statusFailedId && patient.email) {
+                let dataSend = {
+                    time: patient.timeBooking,
+                    date: patient.dateBooking,
+                    doctor: doctor.name,
+                    reason: log.content,
+                    clinic: clinic.name,
+                    specialization: specialization.name
+                };
+
+                await mailer.sendEmailNormal(
+                    patient.email,
+                    transMailBookingFailed.subject,
+                    transMailBookingFailed.template(dataSend)
+                );
+            }
+
+            resolve(patient);
+        } catch (e) {
+            reject(e);
+        }
+    });
 };
+
 
 let isBookAble = async (doctorId, date, time) => {
     let schedule = await db.Schedule.findOne({
@@ -159,10 +263,9 @@ let isBookAble = async (doctorId, date, time) => {
     return false;
 };
 
-let createNewPatient = (data) => {
+/*let createNewPatient = (data) => {
     return new Promise((async (resolve, reject) => {
         try {
-
             let schedule = await db.Schedule.findOne({
                 where: {
                     doctorId: data.doctorId,
@@ -187,7 +290,7 @@ let createNewPatient = (data) => {
                     //update logs
                     let logs = {
                         patientId: patient.id,
-                        content: "The patient made an appointment from the system ",
+                        content: "Bệnh nhân đã đặt lịch hẹn từ hệ thống ",
                         createdAt: Date.now()
                     };
 
@@ -196,7 +299,7 @@ let createNewPatient = (data) => {
                     let dataSend = {
                         time: patient.timeBooking,
                         date: patient.dateBooking,
-                        doctor: doctor.name
+                        doctor: doctor.name,
                     };
 
                     let isEmailSend = await mailer.sendEmailNormal(patient.email, transMailBookingNew.subject, transMailBookingNew.template(dataSend));
@@ -216,7 +319,89 @@ let createNewPatient = (data) => {
             reject(e);
         }
     }));
+};*/
+// Trang thai cho xac nhan dat lich
+let createNewPatient = (data) => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let schedule = await db.Schedule.findOne({
+                where: {
+                    doctorId: data.doctorId,
+                    date: data.dateBooking,
+                    time: data.timeBooking
+                },
+            });
+
+            if (schedule && schedule.sumBooking < schedule.maxBooking) {
+                let patient = await db.Patient.create(data);
+                data.patientId = patient.id;
+                await db.ExtraInfo.create(data);
+
+                // Tăng số lượng đã đặt
+                await schedule.update({ sumBooking: schedule.sumBooking + 1 });
+
+                // Lấy thông tin bác sĩ
+                let doctor = await db.User.findOne({
+                    where: { id: patient.doctorId },
+                    attributes: ['name', 'avatar']
+                });
+
+                // Lấy clinicId và specializationId từ doctor_user
+                let doctorInfo = await db.Doctor_User.findOne({
+                    where: { doctorId: patient.doctorId },
+                    attributes: ['clinicId', 'specializationId']
+                });
+
+                // Lấy tên phòng khám
+                let clinic = await db.Clinic.findOne({
+                    where: { id: doctorInfo.clinicId },
+                    attributes: ['name']
+                });
+
+                // Lấy tên chuyên khoa
+                let specialization = await db.Specialization.findOne({
+                    where: { id: doctorInfo.specializationId },
+                    attributes: ['name']
+                });
+
+                // Ghi log
+                await db.SupporterLog.create({
+                    patientId: patient.id,
+                    content: "Bệnh nhân đã đặt lịch hẹn từ hệ thống",
+                    createdAt: Date.now()
+                });
+
+                // Tạo dữ liệu gửi email
+                let dataSend = {
+                    time: patient.timeBooking,
+                    date: patient.dateBooking,
+                    doctor: doctor.name,
+                    clinic: clinic.name,
+                    specialization: specialization.name
+                };
+
+                // Gửi email
+                let isEmailSend = await mailer.sendEmailNormal(
+                    patient.email,
+                    transMailBookingNew.subject,
+                    transMailBookingNew.template(dataSend)
+                );
+
+                if (!isEmailSend) {
+                    console.log("An error occurs when sending an email to: " + patient.email);
+                }
+
+                resolve(patient);
+            } else {
+                resolve("Max booking");
+            }
+
+        } catch (e) {
+            reject(e);
+        }
+    });
 };
+
 
 let getDetailPatient = (id) => {
     return new Promise(async (resolve, reject) => {

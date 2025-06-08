@@ -101,6 +101,18 @@ body a {
 
 .sec-header {
   height: 500px;
+  margin-top: 65px;
+}
+
+.fixed-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: white;
+  z-index: 9999;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 10px 0;
 }
 
 .sec-header .img-header {
@@ -110,6 +122,11 @@ body a {
   background-repeat: no-repeat;
   background-image: url("../images/header.jpg");
 }
+
+body {
+  overflow-x: hidden;
+}
+
 
 .sec-header .img-header .header-search {
   background-color: #f7d800;
@@ -843,8 +860,8 @@ a.mt-5.pd-3.contact-facebook.text-decoration-none {
 }
 
 /* Thêm CSS để ẩn phần tiêu đề đó */
-.specialty-sidebar-title, 
+.specialty-sidebar-title,
 .sidebar-specialty-name,
 .right-sidebar h2:first-child {
-    display: none !important;
+  display: none !important;
 }

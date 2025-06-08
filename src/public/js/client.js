@@ -35,7 +35,7 @@ function getScheduleDoctorByDate() {
 
                         if (index === data.message.length - 1 && schedule.isDisable === true) {
                             html += `<div>
-                                  There are no scheduled visits in the current timeframe. Please select the next scheduled exams.
+                                  Không có lịch khám nào trong khung giờ hiện tại. Vui lòng chọn lịch khám tiếp theo.
                             </div>`
                         }
 
@@ -43,7 +43,7 @@ function getScheduleDoctorByDate() {
                         moreInfo = `
                          <div class="d-flex flex-column">
                                     <div>
-                                                <span class="d-block mt-2">Choose <i class="fa fa-hand-o-up" aria-hidden="true"></i>  and book a free consultation</span>
+                                                <span class="d-block mt-2">Chọn <i class="fa fa-hand-o-up" aria-hidden="true"></i>  and và đặt lịch tư vấn miễn phí</span>
                                     </div>
                                     <div style="border-top: 1px solid #ccc"
                                          class="d-flex flex-column">
@@ -52,7 +52,7 @@ function getScheduleDoctorByDate() {
                                         <span class="d-block pb-1"
                                               style="border-bottom: 1px solid #ccc">${data.doctor.address}</span>
                                     </div>
-                                    <span class="d-block pt-2">Price: 50 USD</span>
+                                    <span class="d-block pt-2">Giá: 100.000đ</span>
                                 </div>
                         
                         `;
@@ -60,7 +60,7 @@ function getScheduleDoctorByDate() {
                 } else {
                     html = `
                             <div>
-                                 Doctor "${data.doctor.name}" does not have an appointment on <b>${value}</b>. Please select the next examination schedule.
+                                 Bác sĩ "${data.doctor.name}" không có lịch khám vào ngày <b>${value}</b>. Vui lòng chọn lịch khám tiếp theo.
                             </div>
                     `;
                     moreInfo = '';
@@ -111,7 +111,7 @@ function specializationGetScheduleDoctorByDate() {
 
                         if (index === data.message.length - 1 && schedule.isDisable === true) {
                             html += `<div>
-                                   There are no scheduled visits in the current timeframe. Please select the next scheduled exams.
+                                   Không có lịch khám nào trong khung giờ hiện tại. Vui lòng chọn lịch khám tiếp theo.
                             </div>`
                         }
 
@@ -120,20 +120,20 @@ function specializationGetScheduleDoctorByDate() {
                     moreInfo = `
                         <div class="d-flex flex-column">
                                             <div>
-                                                <span class="d-block mt-2"> Choose <i class="fa fa-hand-o-up" aria-hidden="true"></i>  and book a free consultation</span>
+                                                <span class="d-block mt-2"> Chọn <i class="fa fa-hand-o-up" aria-hidden="true"></i>  và đặt lịch tư vấn miễn phí</span>
                                             </div>
                                             <div style="border-top: 1px solid #ccc" class="d-flex flex-column">
                                                 <span class="d-block pt-3 pb-1" style="text-transform: uppercase">Address:</span>
                                                 <span class="d-block pb-1" style="border-bottom: 1px solid #ccc">${data.doctor.address}</span>
                                             </div>
-                                            <span class="d-block pt-2">Price: 50 USD</span>
+                                            <span class="d-block pt-2">Giá: 100.000đ</span>
                          </div>
                     `;
                 } else {
                     html = `
                             <div class="no-schedule">
                                
-                                 Doctor "${data.doctor.name}" does not have an appointment on <b>${value}</b>. Please select the next examination schedule.
+                                 Bác sĩ "${data.doctor.name}" không có lịch khám vào ngày <b>${value}</b>. Vui lòng chọn lịch khám tiếp theo.
 
                             </div>
                     `;
@@ -147,7 +147,7 @@ function specializationGetScheduleDoctorByDate() {
 
             },
             error: function (error) {
-                alertify.error('An error occurs, please try again later!!');
+                alertify.error('Xảy ra lỗi, vui lòng thử lại lần sau!');
                 console.log(error)
             }
         });
@@ -232,7 +232,7 @@ function generatePostPagination(page) {
             $("#list-posts-client").append(html);
         },
         error: function (err) {
-            alertify.error('An error occurs, please try again later!');
+            alertify.error('Xảy ra lỗi, vui lòng thử lại sau!');
             console.log(err)
         }
     })
@@ -296,7 +296,7 @@ function generateHandbookPagination(page) {
             $("#list-posts-client").append(html);
         },
         error: function (err) {
-            alertify.error('An error occurs, please try again later!');
+            alertify.error('Xảy ra lỗi, vui lòng thử lại sau!');
             console.log(err)
         }
     });
@@ -555,7 +555,7 @@ function showModalBookingSpecializationPage() {
                 $('#modalBookingSpe').modal('show');
             },
             error: function (error) {
-                alertify.error('An error occurs, please try again later!!');
+                alertify.error('Xảy ra lỗi, vui lòng phủ lại sau!');
                 console.log(error);
             }
         })
@@ -602,10 +602,10 @@ function handleSubmitFeedback() {
             url: `${window.location.origin}/feedback/create`,
             data: { data: data },
             success: function (data) {
-                alert("Sending a Feedback succeeds!")
+                alert("Gửi phản hồi thành công!")
             },
             error: function (err) {
-                alertify.error('An error occurs, please try again later!');
+                alertify.error('Xảy ra lỗi. Vui lòng thử lại sau!');
                 console.log(error);
             }
         })

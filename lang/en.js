@@ -8,8 +8,10 @@ export const transValidation = {
 export const transMailBookingNew = {
     subject: "Thông báo email",
     template: (data) => {
-        return `<h3> Cảm ơn vì đã đặt lích khám chữa bệnh ở Doctor Care! </h3>
+        return `<h3> Cảm ơn vì đã đặt lích khám chữa bệnh ở DoctorsCare! </h3>
         <h4>Thông tin lịch hẹn: </h4>
+        <div>Phòng khám: ${data.clinic} </div>
+        <div>Chuyên khoa: ${data.specialization}</div>
         <div>Bác sĩ: ${data.doctor} </div>
         <div>Vào lúc: ${data.time}</div>
         <div>Ngày: ${data.date}</div>
@@ -21,8 +23,10 @@ export const transMailBookingNew = {
 export const transMailBookingFailed = {
     subject: "Thông báo email",
     template: (data) => {
-        return `<h3>Cảm ơn vì đã đặt lích khám chữa bệnh ở Doctor Care!  </h3>
+        return `<h3>Cảm ơn vì đã đặt lích khám chữa bệnh ở DoctorsCare!  </h3>
         <h4>Thông tin lịch hẹn:</h4>
+        <div>Phòng khám: ${data.clinic} </div>
+        <div>Chuyên khoa: ${data.specialization}</div>
         <div>Bác sĩ: ${data.doctor} </div>
         <div>Vào lúc: ${data.time}</div>
         <div>Ngày: ${data.date}</div>
@@ -34,8 +38,10 @@ export const transMailBookingFailed = {
 export const transMailBookingSuccess = {
     subject: "Thông báo email",
     template: (data) => {
-        return `<h3>Cảm ơn vì đã đặt lích khám chữa bệnh ở Doctor Care! </h3>
+        return `<h3>Cảm ơn vì đã đặt lích khám chữa bệnh ở DoctorsCare! </h3>
         <h4>Thông tin lịch hẹn:</h4>
+        <div>Phòng khám: ${data.clinic} </div>
+        <div>Chuyên khoa: ${data.specialization}</div>
         <div>Bác sĩ: ${data.doctor} </div>
         <div>Vào lúc: ${data.time}</div>
         <div>Ngày: ${data.date}</div>
@@ -47,7 +53,7 @@ export const transMailBookingSuccess = {
 export const transMailRemedy = {
     subject: "Thông báo email",
     template: (data) => {
-        return `<h3>Cảm ơn vì đã đặt lịch khám chữa bệnh tại Doctor Care!</h3>
+        return `<h3>Cảm ơn vì đã đặt lịch khám chữa bệnh tại DoctorsCare!</h3>
               Sau khi bạn đã khám tại phòng khám của bác sĩ <b>${data.doctor}</b>, bạn có thể xem chi tiết hóa đơn từ file đính kèm email này. </h4>
               <div>Mật khẩu để giải nén file đính kèm có dạng như sau: <i>Họ và tên đầy đủ không dấu - 3 chữ số đầu tiên của số điện thoại - 2 chữ số cuối của năm sinh của bạn.</i></div>
               <br>

@@ -59,7 +59,7 @@ let getManagePosts = async (req, res) => {
         if (req.user) {
             if (req.user.roleId === 1) role = "admin";
         }
-        let object = await supporterService.getPostPagination(1, +process.env.LIMIT_GET_POST, role);
+        let object = await supporterService.getPostsPagination(1, +process.env.LIMIT_GET_POST, role);
         return res.render('main/users/admins/managePost.ejs', {
             user: req.user,
             posts: object.posts,
@@ -107,16 +107,16 @@ let postChangeStatusPatient = async (req, res) => {
         let content = '';
         if (status === 'pending') {
             statusId = statusPendingId;
-            content = "New appointments have been received";
+            content = "Các cuộc hẹn mới đã được xác nhận";
         } else if (status === 'failed') {
             statusId = statusFailedId;
             if (req.body.reason) {
-                content = `Cancel with reason - ${req.body.reason}`;
+                content = `Hủy với lí do - ${req.body.reason}`;
             }
 
         } else if (status === 'confirmed') {
             statusId = statusSuccessId;
-            content = "The appointment has been successfully booked";
+            content = "Cuộc hẹn đã được đặt lịch thành công!";
         }
 
 
